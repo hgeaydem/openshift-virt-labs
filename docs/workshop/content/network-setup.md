@@ -103,7 +103,7 @@ spec:
         state: up
         ipv4:
           dhcp: true
-          enabled: false
+          enabled: true
         bridge:
           options:
             stp:
