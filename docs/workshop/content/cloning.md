@@ -1,102 +1,33 @@
-In this lab we're going to clone a workload and prove that it's identical to the previous. For convenience we're going to download and customise a Fedora 31 image, launch a virtual machine via OpenShift virtualisation based on it, and then clone it - we'll then test to see if the cloned machine works as expected. Before we begin we need to setup our Fedora 31 cloud image, let's first connect to our bastion host as we need somewhere to process and serve the image:
+In this lab we're going to clone a workload and prove that it's identical to the previous. For fun, we will use a Centos 7 image for this work. We're going to download and customise the image, launch a virtual machine via OpenShift Virtualization based on it, and then clone it - we'll then test to see if the cloned machine works as expected. 
+
+Let's begin by checking we have a availale PV for this work:
 
 ~~~bash
-$ ssh root@ocp4-bastion
-(password is "redhat")
+[asimonel-redhat.com@bastion cnv]$ oc get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                             STORAGECLASS           REASON   AGE
+nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound       default/centos8-nfs                               nfs                             91m
+nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                             78m
+pvc-2c361fda-f643-45bb-8c53-d714ff2cfa0f   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                        23h
+pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8   29Gi       RWO            Delete           Bound       default/centos8-hostpath                          hostpath-provisioner            3h1m
 ~~~
 
-Change directory to `/var/www/html` and download the latest Fedora 31 cloud image there:
+You should have nfs-pv2 marked as `Available`.
 
-~~~bash
-# cd /var/www/html
-
-# wget https://download.fedoraproject.org/pub/fedora/linux/releases/31/Cloud/x86_64/images/Fedora-Cloud-Base-31-1.9.x86_64.raw.xz
-(...)
-
-# xz -d Fedora-Cloud-Base-31-1.9.x86_64.raw.xz
-(no output but may take a minute)
-
-# ls -l | grep -i fedora
--rw-r--r--. 1 root root  4294967296 Oct 23 19:07 Fedora-Cloud-Base-31-1.9.x86_64.raw
-~~~
-
-Now we need to customise this image, we're going to do the following:
-
-* Permit root login over ssh
-* Reset the root password to "redhat"
-
-~~~bash
-# dnf install libguestfs-tools -y
-(...)
-
-# systemctl enable --now libvirtd
-
-# virt-customize -a /var/www/html/Fedora-Cloud-Base-31-1.9.x86_64.raw --run-command 'sed -i s/^#PermitRootLogin.*/PermitRootLogin\ yes/ /etc/ssh/sshd_config'
-
-[   0.0] Examining the guest ...
-(...)
-
-# virt-customize -a /var/www/html/Fedora-Cloud-Base-31-1.9.x86_64.raw --uninstall=cloud-init --root-password password:redhat --ssh-inject root:file:/root/.ssh/id_rsa.pub
-
-[   0.0] Examining the guest ...
-(...)
-
-# exit
-logout
-Connection to ocp4-bastion closed.
-~~~
-
-> **NOTE**: Make sure that you've disconnected from this machine before proceeding.
-
-Now that we've prepared our Fedora 31 VM and placed it on an accessible location on our bastion host: (for reference it's at: http://192.168.123.100:81/Fedora-Cloud-Base-31-1.9.x86_64.raw). 
-
-Let's build a PV that will eventually house a copy of this image so we can build a VM from it afterwards:
-
-~~~bash
-$ cat << EOF | oc apply -f -
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: fc31-pv
-spec:
-  accessModes:
-  - ReadWriteOnce
-  - ReadWriteMany
-  capacity:
-    storage: 10Gi
-  nfs:
-    path: /nfs/fc31
-    server: 192.168.123.100
-  persistentVolumeReclaimPolicy: Delete
-  storageClassName: nfs
-  volumeMode: Filesystem
-EOF
-
-persistentvolume/fc31-pv created
-~~~
 
 And make sure the volume is `Available`:
 
-~~~bash
- $ oc get pv/fc31-pv
-NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM
-                      STORAGECLASS           REASON   AGE
-fc31-pv                                    10Gi       RWO,RWX        Delete           Available
-                      nfs                             20s
-~~~
-
-Next we need to create a PVC for that PV that utilises the CDI utility to get the Fedora image from the endpoint we placed it on. The syntax should be familiar to you now with the `cdi.kubevirt.io/storage.import.endpoint` annotation indicating the endpoint for CDI to import from.
+Next we will create a PVC for that PV that utilises the CDI utility to import the Centos 7 image (from http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2). The syntax should be familiar to you now with the `cdi.kubevirt.io/storage.import.endpoint` annotation indicating the endpoint for CDI to import from.
 
 ~~~bash
 $ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: "fc31-nfs"
+  name: "centos7-clone-nfs"
   labels:
     app: containerized-data-importer
   annotations:
-    cdi.kubevirt.io/storage.import.endpoint: "http://192.168.123.100:81/Fedora-Cloud-Base-31-1.9.x86_64.raw"
+    cdi.kubevirt.io/storage.import.endpoint: "http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2"
 spec:
   volumeMode: Filesystem
   storageClassName: nfs
@@ -107,204 +38,189 @@ spec:
       storage: 10Gi
 EOF
 
-persistentvolumeclaim/fc31-nfs created
+persistentvolumeclaim/centos7-clone-nfs created
 ~~~
 
-As before we can watch the process and see the pods (you'll need to be quick with the next two commands, as it's only a 10GB image):
+As before we can watch the process and see the pods:
 
 ~~~bash
-$ oc get pod/importer-fc31-nfs
-NAME                                        READY   STATUS    RESTARTS   AGE
-importer-fc31-nfs                           1/1     Running   0          5s
+$ oc get pods
+NAME                                          READY   STATUS    RESTARTS   AGE
+importer-centos7-clone-nfs                    1/1     Running   0          18s
+virt-launcher-centos8-server-hostpath-5mmxw   1/1     Running   0          24m
+virt-launcher-centos8-server-nfs-58bxn        1/1     Running   0          42m
 ~~~
 
-The import:
+Be fast!
 
 ~~~bash
-$ oc logs importer-fc31-nfs -f
-I0319 02:41:06.647561       1 importer.go:51] Starting importer
-I0319 02:41:06.651389       1 importer.go:107] begin import process
-I0319 02:41:06.654768       1 data-processor.go:275] Calculating available size
-I0319 02:41:06.656489       1 data-processor.go:283] Checking out file system volume size.
-I0319 02:41:06.656689       1 data-processor.go:287] Request image size not empty.
-I0319 02:41:06.656704       1 data-processor.go:292] Target size 10Gi.
-I0319 02:41:06.657272       1 data-processor.go:205] New phase: TransferDataFile
-I0319 02:41:06.660080       1 util.go:170] Writing data...
-I0319 02:41:07.657584       1 prometheus.go:69] 17.53
-I0319 02:41:08.657711       1 prometheus.go:69] 17.53
-I0319 02:41:09.678442       1 prometheus.go:69] 24.25
+$ oc logs -f importer-centos7-clone-nfs
+I0721 05:54:57.926925       1 importer.go:51] Starting importer
+I0721 05:54:57.927727       1 importer.go:107] begin import process
+I0721 05:54:58.090877       1 data-processor.go:275] Calculating available size
+I0721 05:54:58.094471       1 data-processor.go:283] Checking out file system volume size.
+I0721 05:54:58.094909       1 data-processor.go:287] Request image size not empty.
+I0721 05:54:58.094940       1 data-processor.go:292] Target size 10Gi.
+I0721 05:54:58.096037       1 util.go:37] deleting file: /data/disk.img
+I0721 05:54:58.208590       1 data-processor.go:205] New phase: Convert
+I0721 05:54:58.208617       1 data-processor.go:211] Validating image
+I0721 05:54:58.391211       1 qemu.go:212] 0.00
+I0721 05:54:58.832161       1 qemu.go:212] 1.23
+I0721 05:54:59.167900       1 qemu.go:212] 2.36
+I0721 05:54:59.311628       1 qemu.go:212] 3.58
+...
+I0721 05:55:12.209566       1 qemu.go:212] 96.81
+I0721 05:55:12.669545       1 qemu.go:212] 98.00
+I0721 05:55:12.719049       1 qemu.go:212] 99.22
+I0721 05:55:13.098490       1 data-processor.go:205] New phase: Resize
+I0721 05:55:13.112280       1 data-processor.go:268] Expanding image size to: 10Gi
+I0721 05:55:13.128083       1 data-processor.go:205] New phase: Complete
+I0721 05:55:13.128221       1 importer.go:160] Import complete
 ~~~
 
-A stripped down importer description, noting that it's unlikely that you'll be able to execute this command unless you're very quick!
+The bound PV:
 
 ~~~bash
-$ oc describe pod $(oc get pods | awk '/importer/ {print $1;}')
-Name:         importer-fc31-nfs
-Namespace:    default
-Priority:     0
-Node:         ocp4-worker2.cnv.example.com/192.168.123.105
-Start Time:   Thu, 19 Mar 2020 02:41:03 +0000
-Labels:       app=containerized-data-importer
-              cdi.kubevirt.io=importer
-              cdi.kubevirt.io/storage.import.importPvcName=fc31-nfs
-              prometheus.cdi.kubevirt.io=
-Annotations:  cdi.kubevirt.io/storage.createdByController: yes
-              k8s.v1.cni.cncf.io/networks-status:
-(...)
-    Environment:
-      IMPORTER_SOURCE:       http
-      IMPORTER_ENDPOINT:     http://192.168.123.100:81/Fedora-Cloud-Base-31-1.9.x86_64.raw
-      IMPORTER_CONTENTTYPE:  kubevirt
-      IMPORTER_IMAGE_SIZE:   10Gi
-      OWNER_UID:             6cf06f28-7056-40e8-bb8b-2bac5abbe363
-      INSECURE_TLS:          false
-    Mounts:
-      /data from cdi-data-vol (rw)
-      /var/run/secrets/kubernetes.io/serviceaccount from default-token-crznj (ro)
-(...)
-Volumes:
-  cdi-data-vol:
-    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
-    ClaimName:  fc31-nfs
-    ReadOnly:   false
-(...)
+$ oc get pv
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                                             STORAGECLASS           REASON   AGE
+nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound    default/centos8-nfs                               nfs                             96m
+nfs-pv2                                    10Gi       RWO,RWX        Delete           Bound    default/centos7-clone-nfs                         nfs                             83m
+pvc-2c361fda-f643-45bb-8c53-d714ff2cfa0f   100Gi      RWO            Delete           Bound    openshift-image-registry/image-registry-storage   standard                        23h
+pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8   29Gi       RWO            Delete           Bound    default/centos8-hostpath                          hostpath-provisioner
 ~~~
 
 And finally our working PVC:
 
 ~~~bash
-$ oc get pvc/fc31-nfs
-NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS           AGE
-fc31-nfs         Bound    fc31-pv                                    10Gi       RWO,RWX        nfs                    2m13s
+$ oc get pvc
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS           AGE
+centos7-clone-nfs   Bound    nfs-pv2                                    10Gi       RWO,RWX        nfs                    73s
+centos8-hostpath    Bound    pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8   29Gi       RWO            hostpath-provisioner   3h6m
+centos8-nfs         Bound    nfs-pv1                                    10Gi       RWO,RWX        nfs                    77m
 ~~~
 
+### Centos 7 Virtual Machine
 
+Now it's time to launch our Centos 7 VM. Again we are just using the same pieces we've been using throughout the labs. For review we are using the `centos7-clone-nfs` PVC we just prepared (created with CDI importing the Centos image, stored on NFS), and we are utilising the standard bridged networking on the workers via the `tuning-bridge-fixed` construct - the same as we've been using for the other two virtual machines.
 
-### Fedora 31 Virtual Machine
+However we are going to run quite a bit more via cloud-init. This time we will do the following:
 
-Now it's time to launch our Fedora VM. Again we are just using the same pieces we've been using throughout the labs. For review we are using the `fc31-nfs` PVC we just prepared (created with CDI importing the Fedora image, stored on NFS), and we are utilising the standard bridged networking on the workers via the `tuning-bridge-fixed` construct - the same as we've been using for the other two virtual machines:
+* set the centos user password to "redhat"
+* enable ssh logins
+* install podman
+* set up an ngnix podman container to allow us to access a simple web page on the host
 
 ~~~bash
 $ cat << EOF | oc apply -f -
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: fc31-nfs
-  labels:
-    app: fc31-nfs
-    flavor.template.kubevirt.io/small: 'true'
-    os.template.kubevirt.io/fedora31: 'true'
-    vm.kubevirt.io/template: fedora-server-small-v0.7.0
-    vm.kubevirt.io/template-namespace: openshift
-    workload.template.kubevirt.io/server: 'true'
+ annotations:
+   kubevirt.io/latest-observed-api-version: v1alpha3
+   kubevirt.io/storage-observed-api-version: v1alpha3
+   name.os.template.kubevirt.io/centos7.0: CentOS 7
+ name: centos7-clone-nfs
+ namespace: default
+ labels:
+   app: centos7-clone-nfs
+   flavor.template.kubevirt.io/small: 'true'
+   os.template.kubevirt.io/centos7.0: 'true'
+   vm.kubevirt.io/template: centos7-server-small-v0.7.0
+   vm.kubevirt.io/template.namespace: openshift
+   vm.kubevirt.io/template.revision: '1'
+   vm.kubevirt.io/template.version: v0.9.1
+   workload.template.kubevirt.io/server: 'true'
 spec:
-  running: true
-  template:
-    metadata:
-      labels:
-        flavor.template.kubevirt.io/small: 'true'
-        kubevirt.io/size: small
-        os.template.kubevirt.io/fedora31: 'true'
-        vm.kubevirt.io/name: fc31-nfs
-        workload.template.kubevirt.io/server: 'true'
-    spec:
-      domain:
-        cpu:
-          cores: 1
-          sockets: 1
-          threads: 1
-        devices:
-          autoattachPodInterface: false
-          disks:
-            - bootOrder: 1
-              disk:
-                bus: virtio
-              name: disk0
-          interfaces:
-            - bridge: {}
-              model: virtio
-              name: nic0
-          networkInterfaceMultiqueue: true
-          rng: {}
-        machine:
-          type: pc-q35-rhel8.1.0
-        resources:
-          requests:
-            memory: 2Gi
-      evictionStrategy: LiveMigrate
-      hostname: fc31-nfs
-      networks:
-        - multus:
-            networkName: tuning-bridge-fixed
-          name: nic0
-      terminationGracePeriodSeconds: 0
-      volumes:
-        - name: disk0
-          persistentVolumeClaim:
-            claimName: fc31-nfs
+ running: true
+ template:
+   metadata:
+     creationTimestamp: null
+     labels:
+       flavor.template.kubevirt.io/small: 'true'
+       kubevirt.io/domain: centos7-clone-nfs
+       kubevirt.io/size: small
+       os.template.kubevirt.io/centos7.0: 'true'
+       vm.kubevirt.io/name: centos7-clone-nfs
+       workload.template.kubevirt.io/server: 'true'
+   spec:
+     domain:
+       cpu:
+         cores: 1
+         sockets: 1
+         threads: 1
+       devices:
+         disks:
+           - bootOrder: 1
+             disk:
+               bus: virtio
+             name: disk0
+           - disk:
+               bus: virtio
+             name: cloudinitdisk
+         interfaces:
+           - bridge: {}
+             macAddress: '42:8a:6f:75:d6:4d'
+             model: e1000
+             name:  tuning-bridge-fixed
+         rng: {}
+       machine:
+         type: pc-q35-rhel8.1.0
+       resources:
+         requests:
+           memory: 2Gi
+     evictionStrategy: LiveMigrate
+     hostname: centos7-clone-nfs
+     networks:
+       - multus:
+           networkName: tuning-bridge-fixed
+         name: tuning-bridge-fixed
+     terminationGracePeriodSeconds: 0
+     volumes:
+       - name: disk0
+         persistentVolumeClaim:
+           claimName: centos7-clone-nfs-fresh
+       - cloudInitNoCloud:
+           userData: |-
+             #cloud-config
+             password: redhat
+             chpasswd: {expire: False}
+             ssh_pwauth: 1
+             packages:
+               - podman
+             runcmd:
+               - [ systemctl, daemon-reload ]
+               - [ systemctl, enable, nginx ]
+               - [ systemctl, start, --no-block, nginx ]
+             write_files:
+               - path: /etc/systemd/system/nginx.service
+                 permissions: ‘0755’
+                 content: |
+                     [Unit]
+                     Description=Nginx Podman container
+                     Wants=syslog.service
+                     [Service]
+                     ExecStart=/usr/bin/podman run --net=host nginxdemos/hello
+                     ExecStop=/usr/bin/podman stop --all
+                     [Install]
+                     WantedBy=multi-user.target
+         name: cloudinitdisk
 EOF
 
-virtualmachine.kubevirt.io/fc31-nfs created    
+virtualmachine.kubevirt.io/centos7-clone-nfs created
 ~~~
 
 We can view the running VM:
 
 ~~~bash
- $ oc get vmi/fc31-nfs
-NAME                    AGE     PHASE     IP                  NODENAME
-fc31-nfs                28m     Running                       ocp4-worker2.cnv.example.com
+AUGUST
 ~~~
 
-> **NOTE:** The IP address for the Fedora 31 virtual machine will be missing as the `qemu-guest-agent` isn't installed by default, but it should still have networking access. We'll need to utilise the console to get these next steps finalised.
-
-Navigate to the OpenShift UI so we can access the console of the `fc31-nfs` virtual machine. You'll need to select "**Workloads**" --> "**Virtual Machines**" --> "**fc31-nfs**" --> "**Consoles**". You'll be able to login with "**root/redhat**", noting that you may have to click on the console window for it to capture your input. Tip: You might find `Serial Console` option is more responsive.
-
-> **NOTE** If you don't see an VMs make sure to change to the Default project via the drop down at the top of the console.
-
-Once you're in the virtual machine let's install the `qemu-guest-agent` package so we can easily see the IP address of the machine (and the eventual clone):
-
-> **NOTE**: In some cases we've seen DNS not being setup correctly on this Fedora31 guest and some of the above commands failing, simply set the nameserver to "8.8.8.8" on this machine - we only need to download a few packages. If you see this just run `echo "nameserver 8.8.8.8" > /etc/resolv.conf`. Then retry the package install.
+ssh should work
 
 ~~~bash
-[root@localhost ~]# dnf install qemu-guest-agent -y
-Last metadata expiration check: 0:38:21 ago on Thu 19 Mar 2020 03:42:07 AM UTC.
-Dependencies resolved.
-==================================================================================================================================================================================
- Package                                             Architecture                   Version                                                 Repository                       Size
-==================================================================================================================================================================================
-Installing:
- qemu-guest-agent                                    x86_64                         2:4.1.1-1.fc31                                          updates                         134 k
-(...)
+$ ssh root@192.168.
 
-[root@localhost ~]# systemctl enable --now qemu-guest-agent
-(no output)
-~~~
-
-Next ensure the SELinux permissions on sshd are OK by running
-
-~~~bash
-[root@localhost ~]# restorecon -Rv /etc/ssh/sshd_config
-
-Relabeled /etc/ssh/sshd_config from system_u:object_r:unlabeled_t:s0 to system_u:object_r:etc_t:s0
-~~~
-
-And then exit the shell:
-
-~~~bash
-[root@localhost ~]# logout
-~~~
-
-Now if we return to our lab terminal we should be able to see the IP address of the Fedora 31 machine via the OpenShift API; if so, let's try ssh'ing to it:
-
-~~~bash
-$ oc get vmi/fc31-nfs
-NAME       AGE   PHASE     IP                  NODENAME
-fc31-nfs   24m   Running   192.168.123.64/24   ocp4-worker1.cnv.example.com
-
-$ ssh root@192.168.123.64
-(the password is "redhat")
-
-[root@localhost ~]#
+AUGUST HERE
 ~~~
 
 
