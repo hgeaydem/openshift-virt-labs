@@ -2,49 +2,60 @@ On the right hand side where the web terminal is, let's see if we can check the 
 
 ~~~bash
 $ oc get nodes
-NAME                           STATUS   ROLES    AGE     VERSION
-ocp4-master1.cnv.example.com   Ready    master   50m     v1.17.1
-ocp4-master2.cnv.example.com   Ready    master   50m     v1.17.1
-ocp4-master3.cnv.example.com   Ready    master   50m     v1.17.1
-ocp4-worker1.cnv.example.com   Ready    worker   35m     v1.17.1
-ocp4-worker2.cnv.example.com   Ready    worker   35m     v1.17.1
+NAME                     STATUS   ROLES    AGE   VERSION
+ocp-9pv98-master-0       Ready    master   17h   v1.18.3+b74c5ed
+ocp-9pv98-master-1       Ready    master   17h   v1.18.3+b74c5ed
+ocp-9pv98-master-2       Ready    master   17h   v1.18.3+b74c5ed
+ocp-9pv98-worker-g78bj   Ready    worker   17h   v1.18.3+b74c5ed
+ocp-9pv98-worker-pj2dn   Ready    worker   17h   v1.18.3+b74c5ed
 ~~~
 
-If you do not see **three** masters and **two** workers listed in your output, you may need to approve the CSR requests, note that you only need to do this if you're missing nodes, but it won't harm to run this regardless:
-
-~~~bash
-$ for csr in $(oc -n openshift-machine-api get csr | awk '/Pending/ {print $1}'); \
-	do oc adm certificate approve $csr; done
-
-certificatesigningrequest.certificates.k8s.io/csr-26rcg approved
-certificatesigningrequest.certificates.k8s.io/csr-4k6n8 approved
-(...)
-~~~
-
-> **NOTE**: If you needed to do this, it may take a few minutes for the worker to be in a `Ready` state, this is due to it needing to deploy all of the necessary pods. We can proceed though and it'll catch up in the background.
-
-
+> **NOTE**: You will see different naming than those above. You'll have a unique 5-digit UID (in this case it's 9pv98) and unique designators for the workers (in this case we see g78bj and pj2dn). This is expected and and due to the deployment mechanismgs within RHPDS. What is most important is you see 3 masters and 2 workers.
 
 Next let's validate the version that we've got deployed, and the status of the cluster operators:
 
-
-
 ~~~bash
-$ oc get clusterversion
-NAME      VERSION                             AVAILABLE   PROGRESSING   SINCE   STATUS
-version   4.4.0-0.nightly-2020-03-08-235004   True        False         28m     Cluster version is 4.4.0-0.nightly-2020-03-08-235004
-
-$ oc get clusteroperators
-NAME                                       VERSION                             AVAILABLE   PROGRESSING   DEGRADED   SINCE
-authentication                             4.4.0-0.nightly-2020-03-08-235004   True        False         False      33m
-cloud-credential                           4.4.0-0.nightly-2020-03-08-235004   True        False         False      54m
-cluster-autoscaler                         4.4.0-0.nightly-2020-03-08-235004   True        False         False      42m
-console                                    4.4.0-0.nightly-2020-03-08-235004   True        False         False      32m
-csi-snapshot-controller                    4.4.0-0.nightly-2020-03-08-235004   True        False         False      39m
-dns                                        4.4.0-0.nightly-2020-03-08-235004   True        False         False      51m
-(...)
+[asimonel-redhat.com@bastion cnv]$ oc get clusterversion
+NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
+version   4.5.2     True        False         17h     Cluster version is 4.5.2
 ~~~
 
+This cluster is a 4.5.2 deployment and is currently stable (not "progessing"). Let's next review the cluster operators and their status. We should expect them to all be available and also not "progressing" or "degraded."
+
+~~~bash
+$ oc get clusteroperators
+NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
+authentication                             4.5.2     True        False         False      17h
+cloud-credential                           4.5.2     True        False         False      17h
+cluster-autoscaler                         4.5.2     True        False         False      17h
+config-operator                            4.5.2     True        False         False      17h
+console                                    4.5.2     True        False         False      17h
+csi-snapshot-controller                    4.5.2     True        False         False      17h
+dns                                        4.5.2     True        False         False      17h
+etcd                                       4.5.2     True        False         False      17h
+image-registry                             4.5.2     True        False         False      17h
+ingress                                    4.5.2     True        False         False      17h
+insights                                   4.5.2     True        False         False      17h
+kube-apiserver                             4.5.2     True        False         False      17h
+kube-controller-manager                    4.5.2     True        False         False      17h
+kube-scheduler                             4.5.2     True        False         False      17h
+kube-storage-version-migrator              4.5.2     True        False         False      17h
+machine-api                                4.5.2     True        False         False      17h
+machine-approver                           4.5.2     True        False         False      17h
+machine-config                             4.5.2     True        False         False      17h
+marketplace                                4.5.2     True        False         False      17h
+monitoring                                 4.5.2     True        False         False      17h
+network                                    4.5.2     True        False         False      17h
+node-tuning                                4.5.2     True        False         False      17h
+openshift-apiserver                        4.5.2     True        False         False      17h
+openshift-controller-manager               4.5.2     True        False         False      17h
+openshift-samples                          4.5.2     True        False         False      17h
+operator-lifecycle-manager                 4.5.2     True        False         False      17h
+operator-lifecycle-manager-catalog         4.5.2     True        False         False      17h
+operator-lifecycle-manager-packageserver   4.5.2     True        False         False      17h
+service-ca                                 4.5.2     True        False         False      17h
+storage                                    4.5.2     True        False         False      17h
+~~~
 
 
 ### Making sure OpenShift works
@@ -73,8 +84,6 @@ $ oc new-app \
     Run 'oc status' to view your app.
 ~~~
 
-
-
 Our application will now build from source, you can watch it happen with:
 
 ~~~bash
@@ -87,8 +96,6 @@ Push successful
 
 > **NOTE**: You may get an error saying "Error from server (BadRequest): container "sti-build" in pod "duckhunt-js-1-build" is waiting to start: PodInitializing"; you were just too quick to ask for the log output of the pods, simply re-run the command.
 
-
-
 You can check if the Duckhunt pod has finished building and is `Running`, if it's still showing as `ContainerCreating` just give it a few more seconds:
 
 ~~~bash
@@ -100,7 +107,6 @@ duckhunt-js-2-sbcgr    1/1     Running     0          2m6s     <-- this is the o
 ~~~
 
 Now expose the application (via the service) so we can route to it from the outside...
-
 
 ~~~bash
 $ oc expose svc/duckhunt-js
@@ -115,12 +121,12 @@ You should be able to open up the application in the same browser that you're re
 
 <img src="img/duckhunt.png"/>
 
-Now, if you can tear yourself away from the game, let's actually start working with OpenShift virtualisation, first let's just clean up the default project...
+Now, if you can tear yourself away from the game, let's actually start working with OpenShift Virtualization, first let's just clean up the default project ...
 
 ~~~bash
-$ oc delete dc/duckhunt-js bc/duckhunt-js svc/duckhunt-js route/duckhunt-js
-deploymentconfig.apps.openshift.io "duckhunt-js" deleted                                                                                                                                           
-buildconfig.build.openshift.io "duckhunt-js" deleted                                                                                                                                               
+$ $ oc delete deployment/duckhunt-js bc/duckhunt-js svc/duckhunt-js route/duckhunt-js
+deployment.apps "duckhunt-js" deleted
+buildconfig.build.openshift.io "duckhunt-js" deleted
 service "duckhunt-js" deleted
 route.route.openshift.io "duckhunt-js" deleted
 ~~~
