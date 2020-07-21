@@ -419,9 +419,6 @@ spec:
              disk:
                bus: virtio
              name: disk0
-           - disk:
-               bus: virtio
-             name: cloudinitdisk
          interfaces:
            - bridge: {}
              macAddress: '42:8a:6f:75:d6:4e'
@@ -444,21 +441,7 @@ spec:
        - name: disk0
          persistentVolumeClaim:
            claimName: centos7-clone-dv
-       - cloudInitNoCloud:
-           userData: |-
-             #cloud-config
-             write_files:
-               - path: /etc/sysconfig/network-scripts/ifcfg-eth0
-                 permissions: ‘0644’
-                 content: |
-                     BOOTPROTO=dhcp
-                     DEVICE=eth0
-                     ONBOOT=yes
-                     TYPE=Ethernet 
-                     USERCTL=no
-         name: cloudinitdisk
 EOF
-
 
 virtualmachine.kubevirt.io/centos7-clone-dv created
 ~~~
@@ -475,10 +458,10 @@ centos8-server-nfs        8h    Running   192.168.0.28/24   ocp-9pv98-worker-pj2
 
 Now, as mentioned, there is no IP assigned. This is due to the cloned NIC file. Let's fix it with `virtctl`.
 
-Login to the newly running instance:
+Login to the newly running instance (it's a clone so the username and pasword are the same (centos/redhat):
 
 ~~~bash
-[asimonel-redhat.com@bastion cnv]$ virtctl console centos7-clone-dv
+$ virtctl console centos7-clone-dv
 Successfully connected to centos7-clone-dv console. The escape sequence is ^]
 
 CentOS Linux 7 (Core)
@@ -490,7 +473,7 @@ Last login: Tue Jul 21 13:44:37 on ttyS0
 [centos@centos7-clone-nfs ~]$
 ~~~
 
-Notice the hostname? And if look for the IP it will be unset:
+Notice the hostname? And if you look for the IP it will be unset:
 
 ~~~bash
 [centos@centos7-clone-nfs ~]$ ip a
@@ -504,7 +487,7 @@ Notice the hostname? And if look for the IP it will be unset:
     link/ether 42:8a:6f:75:d6:4e brd ff:ff:ff:ff:ff:ff
 ~~~
 
-But this is a clone, and even ngnix is ready:
+But this **is** a clone, and even ngnix is ready:
 
 ~~~bash
 [centos@centos7-clone-nfs ~]$ sudo systemctl status nginx
@@ -550,7 +533,7 @@ Determining IP information for eth0...[  510.913036] e1000: eth0 NIC Link is Up 
 [centos@centos7-clone-nfs ~]$
 ~~~
 
-And the IP is assigned
+And the IP is now assigned
 
 ~~~bash
 [centos@centos7-clone-nfs ~]$ ip a
