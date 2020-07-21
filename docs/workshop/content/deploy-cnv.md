@@ -1,37 +1,42 @@
-At the time of writing, OpenShift virtualisation is available as both upstream (**KubeVirt**) and downstream releases, but is currently only in "[technology preview](https://access.redhat.com/support/offerings/techpreview)" status from Red Hat. The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. Note, it's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.
+At the time of writing, OpenShift virtualisation is available as both upstream (**KubeVirt**) and downstream releases. As of this writing the downstream release is version 2.3 and is available from the OperatorHub. This version is desginated with "[technology preview](https://access.redhat.com/support/offerings/techpreview)" status from Red Hat. 
+
+The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. Note, it's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.
 
 From within the lab guide window you'll see a button in the middle at the top that allows you to switch between the terminal and console options. Select the console and you should see the OpenShift dashboard:
 
 <img  border="1" src="img/console-button.png"/>
 
+Next, navigate to the top-level '**Operators**' menu entry, and select '**OperatorHub**'. This lists all of the available operators that you can install from the Red Hat Marketplace. Simply start typing '**virtualization**' in the search box and you should see an entry called "Container-native virtualization". 
 
+<img  border="1" src="img/cnv-operator-panel.png"/>
 
-> **NOTE**: You can use the dashboard in a separate tab should you wish, you can use this link: https://console-openshift-console.apps.cnv.example.com/dashboards and you'll find the kubeadmin password in */root/ocp-install/auth/kubeadmin-password* on node *192.168.123.100*.
+Select it and you'll see a window that looks like the following:
 
-Next, navigate to the top-level '**Operators**' menu entry, and select '**OperatorHub**'. This lists all of the available operators that you can install from the Red Hat Marketplace. Simply start typing '**virtualization**' in the search box and you should see an entry called "Container-native virtualization". Simply select it and you'll see a window that looks like the following:
-
-<img  border="1" src="img/cnv-operator.png"/>
-
+<img  border="1" src="img/cnv-operator2.png"/>
 
 Next you'll want to select the 'Install' button, which will take you to a second window where you'll be creating an 'Operator Subscription'. Leave the defaults here as they'll automatically select the latest version of OpenShift virtualisation and will allow the software to be installed automatically:
 
-<img  border="1" src="img/cnv-subscribe.png"/>
-
-
+<img  border="1" src="img/cnv-subscribe2.png"/>
 
 Make sure that the namespace it will be installed to is "**openshift-cnv**" - it should be the default entry, but make sure. When you're ready, press the **'Subscribe'** button. After a minute or two you'll see that the subscription has been configured successfully:
 
-<img  border="1" src="img/cnv-installed.png"/>
+<img  border="1" src="img/cnv-installed2.png"/>
 
 Next we need to actually deploy all of the CNV components that this subscription provides. Select the "**Container-native virtualization**" link under the '**Name**' column, and you'll be presented with the following:
 
-<img  border="1" src="img/install-hco.png"/>
+<img  border="1" src="img/install-hco2.png"/>
 
-From here, select '**Create Instance**' on the '**CNV Operator Deployment**' button; this will deploy all of the necessary components that are required to support OpenShift virtualisation. The next page will show you a yaml edit box - we can leave this as the defaults and select '**Create**' at the bottom. Whilst this does its thing, you can move to the '**Workloads**' --> '**Pods**' menu entry and watch it start all of its resources:
+From here, select '**Create Instance**' on the '**CNV Operator Deployment**' button. You'll be presented with the '**Create HyperConverged Cluster**' screen. This will deploy all of the necessary components that are required to support OpenShift virtualisation. Click the '**Create**' button.
 
-<img  border="1" src="img/cnv-pods.png"/>
+<img  border="1" src="img/install-hco-create.png"/>
 
+The '**kubevirt-hyperconverged**' operator will begin to install.
 
+<img  border="1" src="img/install-kubevirt-hco.png"/>
+
+You can follow the install by moving to the **Workloads** -> **Pods** menu on the left. Choose **Filter** and select **Pending** to watch the pods deploy.
+
+<img  border="1" src="img/install-kubevirt-hco-pending.png"/>
 
 You can also return to the 'terminal' tab in your hosted lab guide and watch via the CLI:
 
@@ -44,11 +49,11 @@ $ watch -n2 'oc get pods -n openshift-cnv'
 
 During this process you will see a lot of pods create and terminate, which will look something like the following depending on when you view it; it's always changing:
 
-<img src="img/deploy-cnv-watch.png"/>
+<img src="img/deploy-cnv-watch2.png"/>
 
 This will continue for some time, depending on your environment.
 
-You will know the process is complete when you can return to the top terminal and see that the operator installation has been successful by running the following command:
+You will know the process is complete when you can return to the terminal and see that the operator installation has been successful by running the following command:
 
 ~~~bash
 $ oc get csv -n openshift-cnv
@@ -98,27 +103,54 @@ Together, all of these pods are responsible for various functions of running a v
 | *[virt-template-validator](https://kubernetes.io/blog/2018/05/22/getting-to-know-kubevirt/)*            |Add-on to check the annotations on templates and reject them if invalid.|
 
 
-
-There's also a few custom resources that get defined too, for example the `NodeNetworkState` (`nns` for short) definitions that can be used with the `nmstate-handler` pods to ensure that the NetworkManager state on each node is configured as required, e.g. for defining interfaces/bridges on each of the machines for connectivity for both the physical machine itself and for providing network access for pods (and virtual machines) within OpenShift/Kubernetes:
+There's also a few custom resources that get defined too, for example the `NodeNetworkState` (`nns` for short) definitions that can be used with the `nmstate-handler` pods to ensure that the NetworkManager state on each node is configured as required. This is used for easily defining interfaces/bridges on each of the machines allowing connectivity for both the physical machine itself and for providing network access for pods (and virtual machines) within OpenShift/Kubernetes:
 
 ~~~bash
 $ oc get nns -A
-NAME                           AGE
-ocp4-master1.cnv.example.com   11m
-ocp4-master2.cnv.example.com   12m
-ocp4-master3.cnv.example.com   11m
-ocp4-worker1.cnv.example.com   12m
-ocp4-worker2.cnv.example.com   11m
+NAME                     AGE
+ocp-9pv98-master-0       8m49s
+ocp-9pv98-master-1       8m51s
+ocp-9pv98-master-2       8m49s
+ocp-9pv98-worker-g78bj   8m49s
+ocp-9pv98-worker-pj2dn   8m49s
+~~~
 
-$ oc get nns/ocp4-worker2.cnv.example.com -o yaml
+Dive a little deeper into the config on one of the workers:
+
+~~~bash
+$ oc get nns/ocp-9pv98-worker-g78bj -o yaml
 apiVersion: nmstate.io/v1alpha1
 kind: NodeNetworkState
 metadata:
-  creationTimestamp: "2020-03-09T11:24:42Z"
+  creationTimestamp: "2020-07-21T00:52:52Z"
   generation: 1
-  name: ocp4-worker2.cnv.example.com
-(...)
-   interfaces:
+  name: ocp-9pv98-worker-g78bj
+  ownerReferences:
+  - apiVersion: v1
+    kind: Node
+    name: ocp-9pv98-worker-g78bj
+    uid: e2b20d97-4c7b-49f4-9596-3acfb8c8c835
+  resourceVersion: "390617"
+  selfLink: /apis/nmstate.io/v1alpha1/nodenetworkstates/ocp-9pv98-worker-g78bj
+  uid: cc8b1eb9-62d0-44d1-acdd-b6130a8d6138
+status:
+  currentState:
+    dns-resolver:
+      config:
+        search: []
+        server: []
+      running:
+        search:
+        - ocp.augusts.be
+        - ocp.augusts.be
+        server:
+        - 10.0.0.10
+        - 10.0.0.11
+        - 10.0.0.12
+        - 192.168.0.21
+        - 192.168.0.22
+        - 192.168.0.20
+    interfaces:
     - ipv4:
         enabled: false
       ipv6:
@@ -129,8 +161,10 @@ metadata:
       type: ovs-interface
     - ipv4:
         address:
-        - ip: 192.168.123.105
-          prefix-length: 24
+        - ip: 10.0.0.27
+          prefix-length: 16
+        - ip: 10.0.0.7
+          prefix-length: 16
         auto-dns: true
         auto-gateway: true
         auto-routes: true
@@ -138,7 +172,7 @@ metadata:
         enabled: true
       ipv6:
         address:
-        - ip: fe80::dee4:6bcf:a5c7:3cee
+        - ip: fe80::5669:8b24:406b:cee8
           prefix-length: 64
         auto-dns: true
         auto-gateway: true
@@ -146,12 +180,20 @@ metadata:
         autoconf: true
         dhcp: true
         enabled: true
-      mac-address: 52:54:00:B2:96:0E
+      mac-address: FA:16:3E:2D:45:96
       mtu: 1500
-      name: enp1s0
+      name: ens3
       state: up
       type: ethernet
-(...)
+    - ipv4:
+        address:
+        - ip: 192.168.0.29
+          prefix-length: 24
+        auto-dns: true
+        auto-gateway: true
+        auto-routes: true
+        dhcp: true
+        enabled: true
 ~~~
 
 Here you can see the current state of the node (some of the output has been cut), the interfaces attached, and their physical/logical addresses. In a later section we're going to be modifying the network node state by applying a new configuration to allow nodes to utilise another interface to provide pod networking via a **bridge**. We will do this via a `NodeNetworkConfigurationEnactment` or `nnce` in short:
@@ -161,16 +203,13 @@ $ oc get nnce -n openshift-cnv
 No resources found in openshift-cnv namespace.
 ~~~
 
-> **NOTE**: As we've not set any additional configuration at this stage, it's perfectly normal to have 'no resources found' in the output above.
-
-
-
+As we've not set any additional configuration at this stage, it's perfectly normal to have 'no resources found' in the output above. We are going to build this in a later lab!
 
 
 ### Viewing the OpenShift virtualisation Dashboard
 
-When OpenShift virtualisation is deployed it adds additional components to OpenShift's web-console so you can interact with objects and custom resources defined by OpenShift virtualisation, including `VirtualMachine` types. If you select the `Console` button at the top of this pane you should see the web-console displayed. You can now navigate to "**Workloads**" --> "**Virtual Machines**" on the left-hand side panel and you should see the new snap-in component for OpenShift virtualisation but with no Virtual Machines running.
+When OpenShift virtualisation is deployed it adds additional components to OpenShift's web-console so you can interact with objects and custom resources defined by OpenShift virtualisation, including `VirtualMachine` types. If you select the `Console` button at the top of this pane you should see the web-console displayed. You can now navigate to "**Workloads**" --> "**Virtualization**" on the left-hand side panel and you should see the new component for OpenShift Virtualization. Of course there aren't any Virtual Machines running yet.
 
 <img src="img/cnv-dashboard.png"/>
 
-> **NOTE**: Please don't try and create any virtual machines just yet, we'll get to that shortly!
+**Please don't try and create any virtual machines just yet, we'll get to that shortly. We have to set up Storage and Networking first.**
