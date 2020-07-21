@@ -582,7 +582,7 @@ That's it! You've proven that your clone has worked, and that the hostpath based
 
 ### Clean up
 
-Before moving on to the next lab let's clean up some VMs so we ensure our environment has all the resources it might need; we're going to delete our Centos 8 hostpath VM and our Centos 7 VMs:
+Before moving on to the next lab let's clean up some VMs so we ensure our environment has all the resources it might need; we're going to delete our Centos 8 hostpath VM and both our Centos 7 VMs:
 
 ~~~bash
 $ oc delete vm/centos7-clone-dv vm/centos8-server-hostpath vm/centos7-clone-nfs
