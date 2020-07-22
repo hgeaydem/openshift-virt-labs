@@ -1,4 +1,4 @@
-## OpenShift Virtualization Hands-on Lab (RHDPS)
+## OpenShift Virtualization Hands-on Lab (RHPDS)
 
 **Authors**: [Rhys Oxenham](mailto:roxenham@redhat.com) and [August Simonelli](mailto:asimonel@redhat.com)
 
