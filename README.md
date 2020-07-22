@@ -35,7 +35,7 @@ We do this for simplicity and for ease of scaling this type of enablement howeve
 The deployment is visualised as follows:
 
 <center>
-    <img src="docs/workshop/content/img/lab-environment-rhpds.png"/>
+    <img src="docs/workshop/content/img/lab-environment-rhpds-working.png"/>
 </center>
 
 The lab is deployment inside of RHPDS on topn of OpenStack. A user requests the lab from RHPDS and will be given two ways to access:
