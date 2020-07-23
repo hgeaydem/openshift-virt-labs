@@ -1,4 +1,4 @@
-At the time of writing, OpenShift virtualisation is available as both upstream (**KubeVirt**) and downstream releases. As of this writing the downstream release is version 2.3 and is available from the OperatorHub. This version is desginated with "[technology preview](https://access.redhat.com/support/offerings/techpreview)" status from Red Hat. 
+OpenShift virtualisation is available as both upstream (**KubeVirt**) and downstream releases. As of this writing the downstream release is version 2.3 and is available from the OperatorHub. This version is desginated with "[technology preview](https://access.redhat.com/support/offerings/techpreview)" status from Red Hat. 
 
 The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. Note, it's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.
 
