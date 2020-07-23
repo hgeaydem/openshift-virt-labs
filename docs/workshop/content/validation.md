@@ -1,16 +1,16 @@
 On the right hand side where the web terminal is, let's see if we can check the nodes:
 
 ~~~bash
-$ oc get nodes
-NAME                     STATUS   ROLES    AGE   VERSION
-ocp-9pv98-master-0       Ready    master   17h   v1.18.3+b74c5ed
-ocp-9pv98-master-1       Ready    master   17h   v1.18.3+b74c5ed
-ocp-9pv98-master-2       Ready    master   17h   v1.18.3+b74c5ed
-ocp-9pv98-worker-g78bj   Ready    worker   17h   v1.18.3+b74c5ed
-ocp-9pv98-worker-pj2dn   Ready    worker   17h   v1.18.3+b74c5ed
+[~] $ oc get nodes
+NAME                                STATUS     ROLES    AGE    VERSION
+cluster-august-44qqh-master-0       Ready      master   3h6m   v1.18.3+3107688
+cluster-august-44qqh-master-1       Ready      master   3h6m   v1.18.3+3107688
+cluster-august-44qqh-master-2       Ready      master   3h6m   v1.18.3+3107688
+cluster-august-44qqh-worker-kztfc   NotReady   worker   172m   v1.18.3+3107688
+cluster-august-44qqh-worker-tvtl6   Ready      worker   172m   v1.18.3+3107688
 ~~~
 
-> **NOTE**: You will see different naming than those above. You'll have a unique 5-digit UID (in this case it's 9pv98) and unique designators for the workers (in this case we see g78bj and pj2dn). This is expected and and due to the deployment mechanismgs within RHPDS. What is most important is you see 3 masters and 2 workers.
+> **NOTE**: You will see different naming than those above with your GUID visible in all hostnames. What is most important is you see 3 masters and 2 workers.
 
 Next let's validate the version that we've got deployed, and the status of the cluster operators:
 
@@ -20,7 +20,7 @@ NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
 version   4.5.2     True        False         17h     Cluster version is 4.5.2
 ~~~
 
-This cluster is a 4.5.2 deployment and is currently stable (not "progessing"). Let's next review the cluster operators and their status. We should expect them to all be available and also not "progressing" or "degraded."
+This cluster is a 4.5.2 deployment and is currently stable (it not showing as "progessing" still). Let's next review the cluster operators and their status. We should expect them to all be available and also not "progressing" or "degraded."
 
 ~~~bash
 $ oc get clusteroperators

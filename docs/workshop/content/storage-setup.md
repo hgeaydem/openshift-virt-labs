@@ -39,9 +39,9 @@ nfs                  kubernetes.io/no-provisioner   Delete          Immediate   
 standard (default)   kubernetes.io/cinder           Delete          WaitForFirstConsumer   true                   19h
 ~~~
 
->**NOTE**: The second class there, called **standard** is for OpenStack's Cinder service and is an artefact of the RHPDS' deployment. We won't use it for these labs, as it provides only an RWO access method which is not ideal for VMs. 
+>**NOTE**: The second class there, called **standard** is for OpenStack's Cinder service and is an artefact of the RHPDS' deployment. We won't use it for these labs, as it provides only an RWO access method which is not ideal for VMs and Live Migration. 
 
-Next we will create some NFS-backed physical volumes (PVs) for our VM PVC claims to utilise. However, before we do that, let's review the NFS setup we are going to use.
+Next we will create some NFS-backed persistent volumes (PVs) for our VM persistent volume claims (PV) to utilise. However, before we do that, let's review the NFS setup we are going to use.
 
 We have deployed a simple NFS server to the RHPDS bastion host. This is the same machine you connected to with your rhpds username to port forward for the squid. The NFS server is sharing four directories on that host, as follows:
 
