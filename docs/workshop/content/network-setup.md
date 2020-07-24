@@ -1,6 +1,6 @@
 In this section we're going to be configuring the networking for our environment. 
 
-With OpenShift virtualisation we have a few different options for networking - we can just have our virtual machines be attached to the same pod networks that our containers would have access to, or we can configure more real-world virtualisation networking constructs like bridged networking, SR/IOV, and so on. It's also absolutely possible to have a combination of these, e.g. both pod networking and a bridged interface directly attached to a VM at the same configuration, using Multus, the default networking CNI in OpenShift 4.x.
+With OpenShift virtualisation we have a few different options for networking - we can just have our virtual machines be attached to the same pod networks that our containers would have access to, or we can configure more real-world virtualisation networking constructs like bridged networking, SR/IOV, and so on. It's also absolutely possible to have a combination of these, e.g. both pod networking and a bridged interface directly attached to a VM at the same time, using Multus, the default networking CNI in OpenShift 4.x.
 
 In this lab we're going to enable multiple options - pod networking and a secondary network interface provided by a bridge on the underlying worker nodes (hypervisors). Each of the worker nodes has been configured with an additional, currently unused, network interface that is defined as `ens4`, and we'll need a bridge device, `br1` to be created so we can attach our virtual machines to it. The first step is to use the new Kubernetes NetworkManager state configuration to setup the underlying hosts to our liking. Recall that we can get the **current** state by requesting the `NetworkNodeState`:
 
@@ -142,7 +142,7 @@ EOF
 nodenetworkconfigurationpolicy.nmstate.io/br1-ens4-policy-workers created
 ~~~
 
-If, like in our example here, we have two different nic names (ens6 on cluster-august-lhrd5-worker-6w624 and ens7 on cluster-august-lhrd5-worker-mh52l) you'll need two policies, one for each time. First, we need to label the nodes, so we an easily reference them:
+If, like in our example here, we have two different nic names (ens6 on cluster-august-lhrd5-worker-6w624 and ens7 on cluster-august-lhrd5-worker-mh52l) you'll need two policies, one for each configuration. First, we need to label the nodes, so we an easily reference them:
 
 ~~~bash
 $ oc label node cluster-august-lhrd5-worker-6w624 nic2=ens6
