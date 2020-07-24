@@ -110,7 +110,9 @@ $ oc get vmi/centos7-masq
 Error from server (NotFound): virtualmachineinstances.kubevirt.io "centos7-masq" not found
 ~~~
 
-Oops?! What happened? Where is our instance? As you'll recall the instance is just the running version of the VM, so let's see what's up with our VM:
+Oops?! What happened? Where is our instance? WHat did we break?
+
+As you'll recall the instance is just the running version of the VM, so let's see what's up with our VM:
 
 ~~~bash
 $ oc get vm
@@ -127,7 +129,7 @@ Aha! It's not running. Why? Well, look closely at the yaml above and you'll find
 
 It pays to review before cutting and pasting! ;)
 
-Ok let's start the VM:
+Ok let's start the VM using virtctl (we have all the tools!):
 
 ~~~bash
 $ virtctl start centos7-masq
@@ -140,22 +142,22 @@ centos8-server-nfs   20h     true
 
 $ oc get vmi/centos7-masq
 NAME           AGE   PHASE     IP            NODENAME
-centos7-masq   10s   Running   10.131.0.47   ocp-9pv98-worker-g78bj
+centos7-masq   10s   Running   10.131.0.49   cluster-august-lhrd5-worker-mh52l
 ~~~
 
-But then run it again:
+But then run it again a few times until you see the IP dissapear (or run a watch):
 
 ~~~bash
 $ oc get vmi/centos7-masq
 NAME           AGE   PHASE     IP    NODENAME
-centos7-masq   38s   Running         ocp-9pv98-worker-g78bj
+centos7-masq   38s   Running         cluster-august-lhrd5-worker-mh52l
 ~~~
 
-Again, what's going on here? 
+Oh dear, hat's going on here now? 
 
-Well as before, this is a clone, and the NIC config will ave picked up the old MAC address, which is incorrect for the new VMI.
+Well as before, this is a clone, and the NIC config will have picked up the old MAC address, which is incorrect for the new VMI.
 
-So, as before use `virtctl` to login (cloud-init on the original build will have ensured this is possible) and remove the `HWADDR` line from the eth0 config:
+So, as before use we can use `virtctl` to login (cloud-init on the original build will have ensured the login is enabled and this is possible) and remove the `HWADDR` line from the eth0 config:
 
 ~~~bash
 $ virtctl console centos7-masq
@@ -173,15 +175,19 @@ Last login: Wed Jul 22 01:36:32 on ttyS0
 
 Determining IP information for eth0... done.
 
-[centos@centos7-clone-nfs ~]$ ifconfig eth0
-eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1450
-        inet 10.0.2.2  netmask 255.255.255.0  broadcast 10.0.2.255
-        inet6 fe80::ff:fe93:c070  prefixlen 64  scopeid 0x20<link>
-        ether 02:00:00:93:c0:70  txqueuelen 1000  (Ethernet)
-        RX packets 22  bytes 2064 (2.0 KiB)
-        RX errors 0  dropped 0  overruns 0  frame 0
-        TX packets 9  bytes 942 (942.0 B)
-        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+[centos@centos7-clone-nfs ~]$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 02:00:00:97:cd:40 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.2/24 brd 10.0.2.255 scope global dynamic eth0
+       valid_lft 86313598sec preferred_lft 86313598sec
+    inet6 fe80::ff:fe97:cd40/64 scope link
+       valid_lft forever preferred_lft forever
 
 [centos@centos7-clone-nfs ~]$ exit
 logout
@@ -194,23 +200,31 @@ centos7-clone-nfs login:
 (ctrl-]) to get back to CLI.
 ~~~ 
 
-So, we did it. 
+So, we did it. Let's look for the IP (be patient, it will take a few moments)
 
 ~~~bash
 $ oc get vmi
-NAME                 AGE     PHASE     IP                NODENAME
-centos7-masq         5m32s   Running   10.0.2.2/24       ocp-9pv98-worker-g78bj
-centos8-server-nfs   20h     Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
-~~~
-Except wait a second. That's not the IP we saw before.
+NAME                 AGE     PHASE     IP                 NODENAME
+centos7-masq         2m35s   Running                      cluster-august-lhrd5-worker-mh52l
+centos8-server-nfs   97m     Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 
-It has changed to 10.0.2.2. 
+$ oc get vmi
+NAME                 AGE     PHASE     IP                 NODENAME
+centos7-masq         2m47s   Running   10.0.2.2/24        cluster-august-lhrd5-worker-mh52l
+centos8-server-nfs   97m     Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+~~~
+
+Except wait a second ... that's not the IP we saw before.
+
+It has changed to **10.0.2.2**. 
 
 *Why is this? What's going on?*
 
-Well if you remember correctly we used the cloned Centos image which has a qemu-guest-agent installed. But when we use a `masquerade{}` deployment we are, of course, not interested in the IP assigned to the host. In fact, we are using this so we can use a private, non-routable range and "hide" behind our masqueraded range (the 10. range). But the agent is trying to be helpful and is telling OpenShift the IP it *thinks* we want, the IP *on* the hosts NIC. Nice but, we don't want it.
+Well if you remember correctly we used the cloned Centos image which has a qemu-guest-agent installed which can report on the IP assigned *to the host's NIC*. 
 
-But they're both there.
+But when we use a `masquerade{}` deployment we are, of course, **not** interested in the IP assigned to the host. In fact, we are using this so we can use a private, non-routable range and "hide" behind our masqueraded range (the 10. range). But the agent is trying to be helpful and is telling OpenShift the IP it *thinks* we want and the IP it knows how to give: the IP *on* the hosts NIC. Nice agent, but, sorry, no we don't care.
+
+But they're both there of course.
 
 If you recall, all VMs are managed by pods, and the pod manages the networking. So we can ask the pod associated with the VM for the actual IP ranges being managed here. It's easy ... first find the name of the `launcher` pod associated with this instance:
 
@@ -222,13 +236,13 @@ virt-launcher-centos7-masq-7flv8         1/1     Running     0          7m56s
 Then let's ask check with the *pod* for the actual IPs it is managing for the VM:
 
 ~~~bash
-$ oc describe pod/virt-launcher-centos7-masq-7flv8 | grep -A 11 networks-status
+$ oc describe pod/virt-launcher-centos7-masq-r2gk4| grep -A 11 networks-status
               k8s.v1.cni.cncf.io/networks-status:
                 [{
                     "name": "openshift-sdn",
                     "interface": "eth0",
                     "ips": [
-                        "10.131.0.47"
+                        "10.131.0.49"
                     ],
                     "default": true,
                     "dns": {}
@@ -237,15 +251,15 @@ $ oc describe pod/virt-launcher-centos7-masq-7flv8 | grep -A 11 networks-status
               traffic.sidecar.istio.io/kubevirtInterfaces: k6t-eth0
 ~~~
 
-There it is, `10.131.0.47` is back!
+There it is, `10.131.0.49` is "back"!
 
 And again, if you ask OpenShift for the IP, the qemu-guest-agent supplies the *actual* IP that the VM is set to, just like it's designed to do.
 
 ~~~bash
 $ oc get vmi
-NAME                 AGE   PHASE     IP                NODENAME
-centos7-masq         14m   Running   10.0.2.2/24       ocp-9pv98-worker-g78bj
-centos8-server-nfs   20h   Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+NAME                 AGE     PHASE     IP                 NODENAME
+centos7-masq         7m27s   Running   10.0.2.2/24        cluster-august-lhrd5-worker-mh52l
+centos8-server-nfs   102m    Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 
@@ -260,32 +274,32 @@ For example, the `virtctl` tool provides the capability of managing the lifecycl
 If you remember, our Centos image has NGINX running on port 80, let's use the `virtctl` utility to expose the virtual machine instance on that port:
 
 ~~~bash
-$ virtctl expose virtualmachineinstance centos7-masq --name centos7-masq-port80 --port 80
-Service centos7-masq-port80 successfully exposed for virtualmachineinstance centos7-masq
+$ virtctl expose virtualmachineinstance centos7-masq --name centos7-masq-externalport --port 80
+Service centos7-masq-externalport successfully exposed for virtualmachineinstance centos7-masq
 
-$ oc get svc/centos7-masq-port80
-NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
-centos7-masq-port80   ClusterIP   172.30.223.253   <none>        80/TCP    22s
+$ oc get svc/centos7-masq-externalport
+NAME                        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+centos7-masq-externalport   ClusterIP   172.30.235.215   <none>        80/TCP    18s
 ~~~
 
 Next we create a route for our service and in this case we are using the `edge` designator. This creates a route that uses edge TLS termination provided by the OpenShift cluster.:
 
 ~~~bash
-$ oc create route edge --service=centos7-masq-port80
-route.route.openshift.io/centos7-masq-port80 created
+$ oc create route edge --service=centos7-masq-externalport
+route.route.openshift.io/centos7-masq-externalport created
 ~~~
 
 And view the route:
 
 ~~~bash
 $ oc get routes
-NAME                  HOST/PORT                                         PATH   SERVICES              PORT    TERMINATION   WILDCARD
-centos7-masq-port80   centos7-masq-port80-default.apps.ocp.augusts.be          centos7-masq-port80   <all>   edge          None
+NAME                        HOST/PORT                                                                        PATH   SERVICES                    PORT    TERMINATION   WILDCARD
+centos7-masq-externalport   centos7-masq-externalport-default.apps.cluster-august.students.osp.opentlc.com          centos7-masq-externalport   <all>   edge          Non
 ~~~
 
-You can now visit the endpoint at [https://fc31-service-default.apps.cnv.example.com/](https://fc31-service-default.apps.cnv.example.com/) in your proxied browser and should find the NGINX server from your Centos based VM running behind an TLS encrypted endpoint.
+You can now visit that endpoint via an HTTPS connection (ie, in this example it is https://centos7-masq-externalport-default.apps.cluster-august.students.osp.opentlc.com) in a browser and should find the NGINX server from your Centos based VM running behind an TLS encrypted endpoint.
 
-<img src="img/centos7-masq-nginx.png"/>
+<img src="img/centos7-masq-nginx2.png"/>
 
 > **NOTE**: If you get an "Application is not available" message, make sure that you're accessing the route with **https** - the router performs TLS termination for us, and therefore there's not actually anything listening on port 80 on the outside world, it just forwards 443 (OpenShift ingress) -> 80 (pod).
 
@@ -305,50 +319,57 @@ And check which port has been allocated:
 
 ~~~bash
 $ oc get svc/centos7-ssh-node
-NAME               TYPE       CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
-centos7-ssh-node   NodePort   172.30.60.49   <none>        22:30766/TCP   23s
+NAME               TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+centos7-ssh-node   NodePort   172.30.141.173   <none>        22:32101/TCP   11s
 ~~~
 
-In this case our server is accessible on port **30766**. Review which node has been deployed to:
+In this case our server is accessible on port **32101**. Review which node has been deployed to:
 
 ~~~bash
 $ oc get vmi/centos7-masq
 NAME           AGE   PHASE     IP            NODENAME
-centos7-masq   37m   Running   10.0.2.2/24   ocp-9pv98-worker-g78bj
+centos7-masq   13m   Running   10.0.2.2/24   cluster-august-lhrd5-worker-mh52l
 ~~~
 
 Now that we know which worker it's on we can try SSH'ing to the VM via the mapped port on the underlying host's `NodePort`:
 
 ~~~bash
-$ ssh centos@ocp-9pv98-worker-g78bj -p 30766
-centos@ocp-9pv98-worker-g78bj's password:
+$ ssh centos@cluster-august-lhrd5-worker-mh52l -p 32101
+(...)
 
-Last login: Wed Jul 22 01:38:27 2020
+centos@cluster-august-lhrd5-worker-mh52l's password:
+Last login: Fri Jul 24 07:06:06 2020
+
 [centos@centos7-clone-nfs ~]$
 
-[centos@centos7-clone-nfs ~]$ exit
-logout
-Connection to ocp-9pv98-worker-g78bj closed
+[centos@centos7-clone-nfs ~]$ logout
+Connection to cluster-august-lhrd5-worker-mh52l closed
 ~~~
 
-NodePort services are generally available on *every* host, i.e. even though the VM is running on a specific host, we can ssh to any another worker, on the same port, and reahc it. Try it.
+But you know what's even better?
+
+NodePort services are available on *every* host, i.e. even though the VM is running on a specific host, we can ssh to any another worker, on the same port, and reach it. Try it.
 
 ~~~bash
-$ ssh centos@ocp-9pv98-worker-pj2dn -p 30766
+$ ssh centos@cluster-august-lhrd5-worker-6w624 -p 32101
 
-centos@ocp-9pv98-worker-pj2dn's password:
-Last login: Wed Jul 22 02:16:01 2020 from 10.131.0.1
+(...)
+
+centos@cluster-august-lhrd5-worker-6w624's password:
+Last login: Fri Jul 24 07:20:26 2020 from 10.131.0.1
 
 [centos@centos7-clone-nfs ~]$
+
 ~~~
 
 Be sure to logout of the VM before proceeding:
 
 ~~~bash
-[centos@centos7-clone-nfs ~]$ logout
-Connection to ocp-9pv98-worker-pj2dn closed.
+centos@centos7-clone-nfs ~]$ logout
+Connection to luster-august-lhrd5-worker-6w624 closed.
 
-[asimonel-redhat.com@bastion cnv]$
+[cloud-user@bastion ~]$
+
 ~~~
 
 ### Via the cluster IP
@@ -363,50 +384,47 @@ Service centos-ssh successfully exposed for virtualmachineinstance centos7-masq
 We can now see it in our `oc get svc` output:
 
 ~~~bash
-[asimonel-redhat.com@bastion cnv]$ oc get svc
-NAME                  TYPE           CLUSTER-IP       EXTERNAL-IP                            PORT(S)        AGE
-centos-ssh            ClusterIP      172.30.97.158    <none>                                 22/TCP         73s
-centos7-masq-port80   ClusterIP      172.30.223.253   <none>                                 80/TCP         33m
-centos7-ssh-node      NodePort       172.30.60.49     <none>                                 22:30766/TCP   17m
-kubernetes            ClusterIP      172.30.0.1       <none>                                 443/TCP        44h
-openshift             ExternalName   <none>           kubernetes.default.svc.cluster.local   <none>         44h
+$ oc get svc
+NAME                        TYPE           CLUSTER-IP       EXTERNAL-IP                            PORT(S)        AGE
+centos-ssh                  ClusterIP      172.30.232.4     <none>                                 22/TCP         7s
+centos7-masq-externalport   ClusterIP      172.30.235.215   <none>                                 80/TCP         10m
+centos7-ssh-node            NodePort       172.30.141.173   <none>                                 22:32101/TCP   5m26s
+kubernetes                  ClusterIP      172.30.0.1       <none>                                 443/TCP        6h25m
+openshift                   ExternalName   <none>           kubernetes.default.svc.cluster.local   <none>         6h2m
 ~~~
 
-We can then connect directly to that `CLUSTER-IP` listed for the service (in this case `centos-ssh`, so `172.30.97.158`) directly on port 22 from the worker node itself.
+We can then connect directly to that `CLUSTER-IP` listed for the service (in this case `centos-ssh`, so `172.30.232.4`) directly on port 22 from the worker node itself.
 
 So, find the node ...
+
 ~~~bash
 $ oc get vmi
-NAME                 AGE   PHASE     IP                NODENAME
-centos7-masq         55m   Running   10.0.2.2/24       ocp-9pv98-worker-g78bj
-centos8-server-nfs   21h   Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+NAME                 AGE    PHASE     IP                 NODENAME
+centos7-masq         19m    Running   10.0.2.2/24        cluster-august-lhrd5-worker-mh52l
+centos8-server-nfs   113m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 And open a debug pod on it.
 
 ~~~bash
-[asimonel-redhat.com@bastion cnv]$ oc debug node/ocp-9pv98-worker-g78bj
-Starting pod/ocp-9pv98-worker-g78bj-debug ...
+$ oc debug node/cluster-august-lhrd5-worker-mh52l
+Starting pod/cluster-august-lhrd5-worker-mh52l-debug ...
 To use host binaries, run `chroot /host`
-Pod IP: 10.0.0.27
+Pod IP: 10.0.0.33
 If you don't see a command prompt, try pressing enter.
-
 sh-4.2# chroot /host
 sh-4.4#
 ~~~
 
-And ssh to the `CLUSTER-IP` once on the host:
+And ssh to the `CLUSTER-IP` once on the host (via the debug pod):
 
 ~~~bash
-sh-4.4# ssh centos@172.30.97.158
-The authenticity of host '172.30.97.158 (172.30.97.158)' can't be established.
-ECDSA key fingerprint is SHA256:cw6CPqabOpoC+DWIMHH0GBPtrWyBma8f1ksRODU8ZF0.
-Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
-Warning: Permanently added '172.30.97.158' (ECDSA) to the list of known hosts.
-centos@172.30.97.158's password:
-Last login: Wed Jul 22 02:17:57 2020 from 10.128.2.1
-
+sh-4.4# ssh centos@172.30.232.4
+(...)
+centos@172.30.232.4's password:
+Last login: Fri Jul 24 07:21:36 2020 from 10.128.2.1
 [centos@centos7-clone-nfs ~]$
+
 ~~~
 
 Success!
@@ -426,6 +444,6 @@ sh-4.2# exit
 exit
 
 Removing debug pod ...
-[asimonel-redhat.com@bastion cnv]$
+[cloud-user@bastion ~]$
 ~~~
 
