@@ -9,10 +9,10 @@ To begin with let's use the NFS volumes we created earlier to launch some VMs. W
 Additionally we have set the evictionStrategy to LiveMigrate so that any request to move the instance will use this method. We will explore this in more depth in a later lab, however note the `ACCESS MODES` set for this machine's PVC: 
 
 ~~~bash
-[asimonel-redhat.com@bastion cnv]$ oc get pvc
+$ oc get pvc
 NAME               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS           AGE
-centos8-hostpath   Bound    pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8   29Gi       RWO            hostpath-provisioner   39m
-centos8-nfs        Bound    nfs-pv1                                    10Gi       RWO,RWX        nfs                    71m
+centos8-hostpath   Bound    pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb   29Gi       RWO            hostpath-provisioner   86m
+centos8-nfs        Bound    nfs-pv1                                    10Gi       RWO,RWX        nfs                    99m
 ~~~
 
 To enable Live Migration the PVC must be of the type "RWX". RWX stands for "ReadWriteMany". This means that _many_ nodes can mount the volume as _read-write_.
@@ -70,7 +70,7 @@ spec:
               name: cloudinitdisk
           interfaces:
             - bridge: {}
-              macAddress: '42:8a:6f:75:d6:4b'
+              macAddress: 'de:ad:be:ef:00:01'
               model: e1000
               name:  tuning-bridge-fixed
           rng: {}
@@ -101,7 +101,7 @@ EOF
 virtualmachine.kubevirt.io/centos8-server-nfs created
 ~~~
 
-This starts to **schedule** the virtual machine across the available hypervisors, which we can see by viewing the VM and VMI objects:
+This starts to **schedule** the virtual machine across the available workers, which we can see by viewing the VM and VMI objects:
 
 ~~~bash
 $ oc get vm
@@ -110,37 +110,37 @@ centos8-server-nfs   5s    true
 
 $ oc get vmi
 NAME                 AGE   PHASE     IP    NODENAME
-centos8-server-nfs   10s   Running         ocp-9pv98-worker-pj2dn
+centos8-server-nfs   8s    Running         cluster-august-lhrd5-worker-6w62
 ~~~
 
 > **NOTE**: A `vm` object is the definition of the virtual machine, whereas a `vmi` is an instance of that virtual machine definition.
 
-After a few seconds that machine will show as running:
+After a few minutes the machine will report its IP:
 
 ~~~bash
 $ oc get vmi
-NAME                 AGE     PHASE     IP                NODENAME
-centos8-server-nfs   2m18s   Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+NAME                 AGE    PHASE     IP                 NODENAME
+centos8-server-nfs   117s   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 > **NOTE**: It may take a minute or two for the IP address to appear as it utilise the qemu-guest-agent which needs time to start up.
 
-What you'll find is that OpenShift spawns a pod that manages the provisioning of the virtual machine in our environment, known as the `virt-launcher`:
+OpenShift spawns a pod that manages the provisioning of the virtual machine in our environment, known as the `virt-launcher`:
 
 ~~~bash
 $ oc get pods
 NAME                                     READY   STATUS    RESTARTS   AGE
-virt-launcher-centos8-server-nfs-58bxn   1/1     Running   0          2m52s
+virt-launcher-centos8-server-nfs-5d8zd   1/1     Running   0          15s
 
-$ oc describe pod/virt-launcher-centos8-server-nfs-58bxn
-Name:         virt-launcher-centos8-server-nfs-58bxn
+$ $ oc describe pod/virt-launcher-centos8-server-nfs-5d8zd
+Name:         virt-launcher-centos8-server-nfs-5d8zd
 Namespace:    default
 Priority:     0
-Node:         ocp-9pv98-worker-pj2dn/10.0.0.38
-Start Time:   Tue, 21 Jul 2020 00:53:10 -0400
+Node:         cluster-august-lhrd5-worker-6w624/10.0.0.21
+Start Time:   Fri, 24 Jul 2020 01:29:54 -0400
 Labels:       flavor.template.kubevirt.io/small=true
               kubevirt.io=virt-launcher
-              kubevirt.io/created-by=a239de4d-c54b-44e2-80dd-d2991f87b323
+              kubevirt.io/created-by=77a2be98-6efa-4ce8-baac-796fc9ef31ae
               kubevirt.io/domain=centos8-server-nfs
               kubevirt.io/size=small
               os.template.kubevirt.io/centos8.0=true
@@ -151,34 +151,34 @@ Annotations:  k8s.v1.cni.cncf.io/network-status:
                     "name": "openshift-sdn",
                     "interface": "eth0",
                     "ips": [
-                        "10.128.2.9"
+                        "10.128.2.11"
                     ],
                     "default": true,
                     "dns": {}
                 },{
                     "name": "groot",
                     "interface": "net1",
-                    "mac": "42:8a:6f:75:d6:4b",
+                    "mac": "de:ad:be:ef:00:01",
                     "dns": {}
                 }]
-              k8s.v1.cni.cncf.io/networks: [{"interface":"net1","mac":"42:8a:6f:75:d6:4b","name":"tuning-bridge-fixed","namespace":"default"}]
+              k8s.v1.cni.cncf.io/networks: [{"interface":"net1","mac":"de:ad:be:ef:00:01","name":"tuning-bridge-fixed","namespace":"default"}]
               k8s.v1.cni.cncf.io/networks-status:
                 [{
                     "name": "openshift-sdn",
                     "interface": "eth0",
                     "ips": [
-                        "10.128.2.9"
+                        "10.128.2.11"
                     ],
                     "default": true,
                     "dns": {}
                 },{
                     "name": "groot",
                     "interface": "net1",
-                    "mac": "42:8a:6f:75:d6:4b",
+                    "mac": "de:ad:be:ef:00:01",
                     "dns": {}
                 }]
               kubevirt.io/domain: centos8-server-nfs
-Status:       Running
+              Status:       Running
 (...)
 ~~~
 
@@ -187,8 +187,7 @@ If you look into this launcher pod, you'll see that it has the same typical libv
 First get a shell on the conatiner running pod:
 
 ~~~bash
-$ oc exec -it virt-launcher-centos8-server-nfs-58bxn /bin/bash
-
+$ oc exec -it virt-launcher-centos8-server-nfs-5d8zd /bin/bash
 kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead.
 ~~~
 
@@ -211,7 +210,7 @@ We can also verify the storage attachment, which should be via NFS:
  vdb      /var/run/kubevirt-ephemeral-disks/cloud-init-data/default/centos8-server-nfs/noCloud.iso
  
 [root@centos8-server-nfs /]# mount | grep nfs
-192.168.0.26:/mnt/nfs/one on /run/kubevirt-private/vmi-disks/disk0 type nfs (rw,relatime,vers=3,rsize=262144,wsize=262144,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=192.168.0.26,mountvers=3,mountport=20048,mountproto=udp,local_lock=none,addr=192.168.0.26)
+192.168.47.16:/mnt/nfs/one on /run/kubevirt-private/vmi-disks/disk0 type nfs4 (rw,relatime,vers=4.2,rsize=262144,wsize=262144,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=192.168.47.21,local_lock=none,addr=192.168.47.16)
 ~~~
 
 And for networking:
@@ -220,7 +219,7 @@ And for networking:
 [root@centos8-server-nfs /]# virsh domiflist 1
  Interface   Type     Source     Model   MAC
 ------------------------------------------------------------
- vnet0       bridge   k6t-net1   e1000   42:8a:6f:75:d6:4b
+ vnet0       bridge   k6t-net1   e1000   de:ad:be:ef:00:01
 ~~~
 
 But let's go a little deeper:
@@ -228,11 +227,11 @@ But let's go a little deeper:
 ~~~bash
 [root@centos8-server-nfs /]# ip link | grep -A2 k6t-net1
 5: net1@if4: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master k6t-net1 state UP mode DEFAULT group default
-    link/ether 42:8a:6f:90:c5:14 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+    link/ether de:ad:be:c3:45:df brd ff:ff:ff:ff:ff:ff link-netnsid 0
 6: k6t-net1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default
-    link/ether 42:8a:6f:90:c5:14 brd ff:ff:ff:ff:ff:ff
+    link/ether de:ad:be:c3:45:df brd ff:ff:ff:ff:ff:ff
 7: vnet0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel master k6t-net1 state UNKNOWN mode DEFAULT group default qlen 1000
-    link/ether fe:8a:6f:75:d6:4b brd ff:ff:ff:ff:ff:ff
+    link/ether fe:ad:be:ef:00:01 brd ff:ff:ff:ff:ff:ff
 ~~~
 
 That's showing that there's a bridge inside of the pod called "**k6t-net1**", with both the **"vnet0"** (the device attached to the VM), and the **"net1@if4"** device being how the packets get out onto the bridge on the hypervisor (more shortly):
@@ -240,7 +239,7 @@ That's showing that there's a bridge inside of the pod called "**k6t-net1**", wi
 ~~~bash
 [root@centos8-server-nfs /]# virsh dumpxml 1 | grep -A8 "interface type"
     <interface type='bridge'>
-      <mac address='42:8a:6f:75:d6:4b'/>
+      <mac address='de:ad:be:ef:00:01'/>
       <source bridge='k6t-net1'/>
       <target dev='vnet0'/>
       <model type='e1000'/>
@@ -256,7 +255,7 @@ Exit the shell before proceeding:
 [root@rhel8-server-nfs /]# exit
 exit
 
-$
+[cloud-user@bastion ~]$
 ~~~
 
 Now, how is this plugged on the underlying host? 
@@ -264,9 +263,9 @@ Now, how is this plugged on the underlying host?
 The key to this is the **"net1@if4"** device (it may be slightly different in your environment); this is one half of a **"veth pair"** that allows network traffic to be bridged between network namespaces, which is exactly how containers segregate their network traffic between each other on a container host. In this example the **"cnv-bridge"** is being used to connect the bridge for the virtual machine (**"k6t-net1"**) out to the bridge on the underlying host (**"br1"**), via a veth pair. The other side of the veth pair can be discovered as follows. First find the host of our virtual machine:
 
 ~~~bash
-$ oc get vmi
-NAME                 AGE   PHASE     IP                NODENAME
-centos8-server-nfs   10m   Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+$  oc get vmi
+NAME                 AGE     PHASE     IP                 NODENAME
+centos8-server-nfs   4m15s   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 Then connect to it and track back the link - here you'll need to adjust the commands below - if your veth pair on the pod side was **"net1@if4"** then the **ifindex** in the command below will be **"4"**, if it was **"net1@if5"** then **"ifindex"** will be **"5"** and so on...
@@ -274,26 +273,26 @@ Then connect to it and track back the link - here you'll need to adjust the comm
 To do this we need to get to one of our workers, so first jump to the bastion:
 
 ~~~bash
-[asimonel-redhat.com@bastion cnv]$ oc debug node/ocp-9pv98-worker-pj2dn
-Starting pod/ocp-9pv98-worker-pj2dn-debug ...
+$ oc debug node/cluster-august-lhrd5-worker-6w624
+Starting pod/cluster-august-lhrd5-worker-6w624-debug ...
 To use host binaries, run `chroot /host`
-Pod IP: 10.0.0.38
+Pod IP: 10.0.0.21
 If you don't see a command prompt, try pressing enter.
-
 sh-4.2# chroot /host
+sh-4.4#
 
 sh-4.4# export ifindex=4
 
 sh-4.4# ip -o link | grep ^$ifindex: | sed -n -e 's/.*\(veth[[:alnum:]]*@if[[:digit:]]*\).*/\1/p'
-veth9aafe530@if5
+veth1f161f0d@if5
 ~~~
 
-Therefore, the other side of the link, in the example above is **"veth9aafe530"**. You can then see that this is attached to **"br1"** as follows-
+Therefore, the other side of the link, in the example above is **"veth1f161f0d"**. You can then see that this is attached to **"br1"** as follows-
 
 ~~~bash
-sh-4.4# ip link show dev veth9aafe530
-4: veth9aafe530@if5: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master br1 state UP mode DEFAULT group default
-    link/ether 22:56:9d:ef:cf:d9 brd ff:ff:ff:ff:ff:ff link-netns ecd9d185-382c-4252-a9b8-2d110498ffc0
+sh-4.4# ip link show dev veth1f161f0d
+4: veth1f161f0d@if5: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue master br1 state UP mode DEFAULT group default
+    link/ether 4a:02:3f:2f:db:91 brd ff:ff:ff:ff:ff:ff link-netns 408b6bf0-12ae-4c32-9427-14b171dd2c2e
 ~~~
 
 Note the "**master br1**" in the above output.
@@ -312,11 +311,14 @@ exit
 
 Removing debug pod ...
 
-$ oc whoami
-system:serviceaccount:workbook:cnv
+[cloud-user@bastion ~]$
+~~~
 
+And as good habit ...
+
+~~~bash
 $ oc project default
-Already on project "default" on server "https://172.30.0.1:443".
+Already on project "default" on server "https://api.cluster-august.students.osp.opentlc.com:6443".
 ~~~
 
 Now that we have the NFS instance running, let's do the same for the **hostpath** setup we created. This is essentially the same as our NFS instance, except we reference the `rhel8-hostpath` PVC:
@@ -370,7 +372,7 @@ spec:
               name: cloudinitdisk
           interfaces:
             - bridge: {}
-              macAddress: '42:8a:6f:75:d6:4c'
+              macAddress: 'de:ad:be:ef:00:02'
               model: e1000
               name:  tuning-bridge-fixed
           rng: {}
@@ -406,32 +408,33 @@ As before we can see the launcher pod built and run:
 ~~~bash
 $ oc get pods
 NAME                                          READY   STATUS    RESTARTS   AGE
-virt-launcher-centos8-server-hostpath-5mmxw   1/1     Running   0          12s
-virt-launcher-centos8-server-nfs-58bxn        1/1     Running   0          18m
+virt-launcher-centos8-server-hostpath-zpgwr   0/1     Running   0          4s
+virt-launcher-centos8-server-nfs-5d8zd        1/1     Running   0          7m4
 
-$ oc get vmi
-NAME                      AGE     PHASE     IP                NODENAME
-centos8-server-hostpath   2m18s   Running   192.168.0.41/24   ocp-9pv98-worker-pj2dn
-centos8-server-nfs        20m     Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+$  oc get vmi
+NAME                      AGE     PHASE     IP                 NODENAME
+centos8-server-hostpath   110s    Running   192.168.47.15/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs        8m50s   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 
 ~~~
 
 And looking deeper we can see the hostpath claim we explored earlier being utilised, note the `Mounts` section for where, inside the pod, the `rhel8-hostpath` PVC is attached, and then below the PVC name:
 
 ~~~bash
-$ oc describe pod/virt-launcher-centos8-server-hostpath-5mmxw
-Name:         virt-launcher-centos8-server-hostpath-5mmxw
+$ oc describe pod/virt-launcher-centos8-server-hostpath-zpgwr
+Name:         virt-launcher-centos8-server-hostpath-zpgwr
 Namespace:    default
 Priority:     0
-Node:         ocp-9pv98-worker-pj2dn/10.0.0.38
-Start Time:   Tue, 21 Jul 2020 01:11:07 -0400
+Node:         cluster-august-lhrd5-worker-6w624/10.0.0.21
+Start Time:   Fri, 24 Jul 2020 01:36:54 -0400
 Labels:       flavor.template.kubevirt.io/small=true
               kubevirt.io=virt-launcher
-              kubevirt.io/created-by=8cfc54a6-ee75-4e07-a789-137ba8fb763a
+              kubevirt.io/created-by=fc48f107-a924-4214-b7af-3ef9de1de9bc
               kubevirt.io/domain=centos8-server-hostpath
               kubevirt.io/size=small
               os.template.kubevirt.io/centos8.0=true
               vm.kubevirt.io/name=centos8-server-hostpath
+              workload.template.kubevirt.io/server=true
 (...)
     Mounts:
       /var/run/kubevirt from virt-share-dir (rw)
@@ -453,17 +456,14 @@ Volumes:
 If we take a peek inside of that pod we can dig down further, you'll notice that it's largely the same output as the NFS step above, but the mount point is obviously not over NFS:
 
 ~~~bash
-$ oc exec -it virt-launcher-centos8-server-hostpath-5mmxw /bin/bash
-kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead
+$ oc exec -it virt-launcher-centos8-server-hostpath-zpgwr /bin/bash
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead.
 
 [root@centos8-server-hostpath /]#  virsh domblklist 1
  Target   Source
 ---------------------------------------------------------------------------------------------------------
  sda      /var/run/kubevirt-private/vmi-disks/centos8-hostpath/disk.img
  vda      /var/run/kubevirt-ephemeral-disks/cloud-init-data/default/centos8-server-hostpath/noCloud.iso
-
-[root@centos8-server-hostpath /]# mount | grep centos8
-/dev/mapper/coreos-luks-root-nocrypt on /run/kubevirt-private/vmi-disks/centos8-hostpath type xfs (rw,relatime,seclabel,attr2,inode64,prjquota)
 ~~~
 
 The problem here is that if you try and run the `mount` command to see how this is attached, it will only show the whole filesystem being mounted into the pod:
@@ -480,38 +480,47 @@ However, we can see how this has been mapped in by Kubernetes by looking at the 
 logout
 
 $ oc get vmi/centos8-server-hostpath
-NAME                      AGE     PHASE     IP                NODENAME
-centos8-server-hostpath   4m29s   Running   192.168.0.41/24   ocp-9pv98-worker-pj2d
+NAME                      AGE     PHASE     IP                 NODENAME
+centos8-server-hostpath   3m34s   Running   192.168.47.15/24   cluster-august-lhrd5-worker-6w624
 
 $ oc get pods | grep centos8-server-hostpath
-virt-launcher-centos8-server-hostpath-5mmxw   1/1     Running   0          4m54s
+virt-launcher-centos8-server-hostpath-zpgwr   1/1     Running   0          3m49s
 ~~~
 
 Next, we need to get the container ID from the pod:
 
 ~~~bash
-$ oc describe pod virt-launcher-centos8-server-hostpath-5mmxw | awk -F// '/Container ID/ {print $2;}'
-9823cde09cfd31b4d0d1273892d8e22120accec0bcdfc579bc25434fbf6d0f08
+$ oc describe pod virt-launcher-centos8-server-hostpath-zpgwr| awk -F// '/Container ID/ {print $2;}'
+c7c2eb6a841ba1b697c9ecee8ab17de06a47ec18d807c0b6af26b8b0bd02893f
 ~~~
 
 Now we can check on the worker node itself, remembering to adjust these commands for the worker that your hostpath based VM is running on, and the container ID from the above:
 
 ~~~bash
-[asimonel-redhat.com@bastion cnv]$ oc debug node/ocp-9pv98-worker-pj2dn
-Starting pod/ocp-9pv98-worker-pj2dn-debug ...
+$ oc debug node/cluster-august-lhrd5-worker-6w624
+Starting pod/cluster-august-lhrd5-worker-6w624-debug ...
 To use host binaries, run `chroot /host`
-Pod IP: 10.0.0.38
+Pod IP: 10.0.0.21
 If you don't see a command prompt, try pressing enter.
-
 sh-4.2# chroot /host
-
-sh-4.4# crictl inspect 9823cde09cfd31b4d0d1273892d8e22120accec0bcdfc579bc25434fbf6d0f08 | grep -A4 centos8-hostpath
+sh-4.4# crictl inspect c7c2eb6a841ba1b697c9ecee8ab17de06a47ec18d807c0b6af26b8b0bd02893f | grep -A4 centos8-hostpath
         "containerPath": "/var/run/kubevirt-private/vmi-disks/centos8-hostpath",
-        "hostPath": "/var/hpvolumes/pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8",
+        "hostPath": "/var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb",
         "propagation": "PROPAGATION_PRIVATE",
         "readonly": false,
         "selinuxRelabel": false
-(...)
+--
+          "destination": "/var/run/kubevirt-private/vmi-disks/centos8-hostpath",
+          "type": "bind",
+          "source": "/var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb",
+          "options": [
+            "rw",
+--
+        "io.kubernetes.cri-o.Volumes": "[{\"container_path\":\"/etc/hosts\",\"host_path\":\"/var/lib/kubelet/pods/43c263eb-69e0-430d-b8bc-0f9a0a57ac9f/etc-hosts\",\"readonly\":false},{\"container_path\":\"/dev/termination-log\",\"host_path\":\"/var/lib/kubelet/pods/43c263eb-69e0-430d-b8bc-0f9a0a57ac9f/containers/compute/c164551a\",\"readonly\":false},{\"container_path\":\"/var/run/kubevirt\",\"host_path\":\"/var/run/kubevirt\",\"readonly\":false},{\"container_path\":\"/var/run/libvirt\",\"host_path\":\"/var/lib/kubelet/pods/43c263eb-69e0-430d-b8bc-0f9a0a57ac9f/volumes/kubernetes.io~empty-dir/libvirt-runtime\",\"readonly\":false},{\"container_path\":\"/var/run/kubevirt-infra\",\"host_path\":\"/var/lib/kubelet/pods/43c263eb-69e0-430d-b8bc-0f9a0a57ac9f/volumes/kubernetes.io~empty-dir/infra-ready-mount\",\"readonly\":false},{\"container_path\":\"/var/run/kubevirt-ephemeral-disks\",\"host_path\":\"/var/lib/kubelet/pods/43c263eb-69e0-430d-b8bc-0f9a0a57ac9f/volumes/kubernetes.io~empty-dir/ephemeral-disks\",\"readonly\":false},{\"container_path\":\"/var/run/kubevirt/container-disks\",\"host_path\":\"/var/run/kubevirt/container-disks/fc48f107-a924-4214-b7af-3ef9de1de9bc\",\"readonly\":false},{\"container_path\":\"/var/run/kubevirt-private/vmi-disks/centos8-hostpath\",\"host_path\":\"/var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb\",\"readonly\":false}]",
+        "io.kubernetes.pod.name": "virt-launcher-centos8-server-hostpath-zpgwr",
+        "io.kubernetes.pod.namespace": "default",
+        "io.kubernetes.pod.terminationGracePeriod": "30",
+        "io.kubernetes.pod.uid": "43c263eb-69e0-430d-b8bc-0f9a0a57ac9f",
 ~~~
 
 Here you can see that the container has been configured to have a `hostPath` from `/var/hpvolumes` mapped to the expected path inside of the container where the libvirt definition is pointing to.
@@ -525,12 +534,8 @@ sh4.2# exit
 exit
 
 Removing debug pod ...
+[cloud-user@bastion ~]$
 
-$ oc whoami
-system:serviceaccount:workbook:cnv
-
-[~] $ oc project default
-Already on project "default" on server "https://172.30.0.1:443".
+$ oc project default
+Already on project "default" on server "https://api.cluster-august.students.osp.opentlc.com:6443".
 ~~~
-
-
