@@ -8,7 +8,7 @@ First, make sure you're in the default project:
 
 ~~~bash
 $ oc project default
-Now using project "default" on server "https://172.30.0.1:443".
+Now using project "default" on server "https://api.cluster-august.students.osp.opentlc.com:6443".
 ~~~
 
 >**NOTE**: If you don't use the default project for the next few lab steps, it's likely that you'll run into some errors - some resources are scoped, i.e. aligned to a namespace, and others are not. Ensuring you're in the default namespace ensures that all of the coming lab steps should flow together.
@@ -56,16 +56,16 @@ drwxrwxrwx. 2 root root 6 Jul 19 23:30 two
 
 We will use each one for a different PV which allows us to run four VMs at a time with NFS-backed storage.
 
-When creating the PV's we need to tell OpenShift what IP the NFS server is on. To determine the IP for your server. On the bastion simply find the interface with the 192 address and use that:
+When creating the PV's we need to tell OpenShift what IP the NFS server is on. To determine the IP for your server. On the bastion simply find the interface with the 192 address and use that (in the example below, and in this lab guide, we will use `192.168.47.16`:
 
 ~~~bash
-[asimonel-redhat.com@bastion cnv]$ ip a | grep 192
-    inet 192.168.0.26/24 brd 192.168.0.255 scope global noprefixroute dynamic eth0
+[cloud-user@bastion ~]$ ip a | grep 192
+    inet 192.168.47.16/24 brd 192.168.47.255 scope global dynamic noprefixroute eth0
 ~~~
 
-This network is plumbed into bastion and all the workers. In the example above, you'd use 192.168.0.26 in the PV claims below. Your subnet may differ slightly.
+This network is plumbed into bastion and all the workers. In the example above, you'd use 192.168.47.16 in the PV claims below. Your subnet may differ slightly.
 
-Ok, with all that clear, let's create our PVs (remembering to substitute the correct IP and paths for each claim):
+Ok, with all that clear, let's create our PVs (**remembering to substitute the correct IP and paths for each claim**):
 
 Create nfs-pv1:
 
@@ -83,7 +83,7 @@ spec:
     storage: 10Gi
   nfs:
     path: /mnt/nfs/one
-    server: 192.168.0.26
+    server: 192.168.47.16
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -108,7 +108,7 @@ spec:
     storage: 10Gi
   nfs:
     path: /mnt/nfs/two
-    server: 192.168.0.26
+    server: 192.168.47.16
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -124,9 +124,9 @@ Check the PV's:
 ~~~bash
 $ oc get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                             STORAGECLASS   REASON   AGE
-nfs-pv1                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                     11s
-nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                     7s
-pvc-2c361fda-f643-45bb-8c53-d714ff2cfa0f   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                19h
+nfs-pv1                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                     37s
+nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                     19s
+pvc-11b35321-1aa4-4723-a436-66591f81417c   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                131
 ~~~
 
 
@@ -162,7 +162,7 @@ spec:
       storage: 10Gi
 EOF
 
-persistentvolumeclaim/rhel8-nfs created
+persistentvolumeclaim/centos8-nfs created
 ~~~
 
 Once created, CDI triggers the importer pod automatically to take care of the conversion for you:
@@ -254,11 +254,14 @@ centos8-nfs   Bound    nfs-pv1   10Gi       RWO,RWX        nfs            7m4s
 This same configuration should be reflected when asking OpenShift for a list of persistent volumes (`PV`), noting that one of the PV's we created earlier is still showing as `Available` and one is `Bound` to the claim we just requested:
 
 ~~~bash
-$ oc get pv
+$ oc get pvc
+NAME          STATUS   VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+centos8-nfs   Bound    nfs-pv1   10Gi       RWO,RWX        nfs            32s
+[cloud-user@bastion ~]$ oc get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                             STORAGECLASS   REASON   AGE
-nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound       default/centos8-nfs                               nfs                     7m58s
-nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                     7m47s
-pvc-2c361fda-f643-45bb-8c53-d714ff2cfa0f   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                19h
+nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound       default/centos8-nfs                               nfs                     109s
+nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                     91s
+pvc-11b35321-1aa4-4723-a436-66591f81417c   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                132m
 ~~~
 
 Recall that when we setup the `PV` resources we specified the location and path of the NFS server that we wanted to utilise:
@@ -266,7 +269,7 @@ Recall that when we setup the `PV` resources we specified the location and path 
 ~~~basic
   nfs:
     path: /mnt/nfs/one
-    server: 192.168.0.26
+    server: 192.168.47.16
 ~~~
 
 If we have a look on our NFS server (ie the RHPDS bastion host) we can make sure that it's using this correctly
@@ -274,22 +277,21 @@ If we have a look on our NFS server (ie the RHPDS bastion host) we can make sure
 > **NOTE**: In your environment, if your image was 'pv1' rather than 'pv2', adjust the commands to match your setup (check both /mnt/nfs/one and /mnt/nfs/two). 
 
 ~~~bash
-[asimonel-redhat.com@bastion cnv]$ ls -l /mnt/nfs/one/
-total 2256116
--rw-r--r--. 1 root root 10737418240 Jul 20 22:05 disk.img
+[cloud-user@bastion ~]$ ls -l /mnt/nfs/one/
+total 387092
+-rw-r--r--. 1 root root 10737418240 Jul 23 23:32 disk.img
 
-[asimonel-redhat.com@bastion cnv]$ sudo qemu-img info /mnt/nfs/one/disk.img
+[cloud-user@bastion ~]$ sudo qemu-img info /mnt/nfs/one/disk.img
 image: /mnt/nfs/one/disk.img
 file format: raw
 virtual size: 10G (10737418240 bytes)
-disk size: 2.2G
+disk size: 427M
 
-[asimonel-redhat.com@bastion cnv]$ sudo file /mnt/nfs/one/disk.img
-/mnt/nfs/one/disk.img: x86 boot sector; partition 1: ID=0x83, active, starthead 4, startsector 2048, 16384000 sectors, code offset 0x63
+[cloud-user@bastion ~]$ sudo file /mnt/nfs/one/disk.img
+/mnt/nfs/one/disk.img: DOS/MBR boot sector
 ~~~
 
 We'll use this NFS-based Centos8 image when we provision a virtual machine in a future step.
-
 
 ## Hostpath Storage
 
@@ -335,30 +337,17 @@ This deploys a new `systemd` unit file on the worker nodes to create a new direc
 
 ~~~bash
 $ oc get nodes
-NAME                     STATUS                     ROLES    AGE   VERSION
-ocp-9pv98-master-0       Ready                      master   20h   v1.18.3+b74c5ed
-ocp-9pv98-master-1       Ready                      master   20h   v1.18.3+b74c5ed
-ocp-9pv98-master-2       Ready                      master   20h   v1.18.3+b74c5ed
-ocp-9pv98-worker-g78bj   Ready,SchedulingDisabled   worker   20h   v1.18.3+b74c5ed
-ocp-9pv98-worker-pj2dn   Ready                      worker   20h   v1.18.3+b74c5ed
+NAME                                STATUS                     ROLES    AGE    VERSION
+cluster-august-lhrd5-master-0       Ready                      master   153m   v1.18.3+b74c5ed
+cluster-august-lhrd5-master-1       Ready                      master   153m   v1.18.3+b74c5ed
+cluster-august-lhrd5-master-2       Ready                      master   153m   v1.18.3+b74c5ed
+cluster-august-lhrd5-worker-6w624   Ready                      worker   134m   v1.18.3+b74c5ed
+cluster-august-lhrd5-worker-mh52l   Ready,SchedulingDisabled   worker   134m   v1.18.3+b74c5ed
 ~~~
 
-> **NOTE**: This will take a few minutes (allow about 10 mins in an RHPDS-based lab) to reflect on the cluster, and causes the worker nodes to reboot. You'll witness a disruption on the lab guide functionality where you will see the consoles hang and/or display a "Closed" image. In some cases we have needed to refresh the entire browser.
->
-> <img src="img/disconnected-terminal.png"/>
+> **NOTE**: This will take a few minutes (allow at least 10 mins in an RHPDS-based lab) to reflect on the cluster, and causes the worker nodes to reboot.
 
-> It should automatically reconnect but if it doesn't, you can try reloading the terminal by clicking the three bars in the top right hand corner:
-
-<img src="img/reload-terminal.png"/>
-
-When you're able to issue commands again, make sure you're in the correct namespace again:
-
-~~~bash
-$ oc project default
-Now using project "default" on server "https://172.30.0.1:443".
-~~~
-
-Now wait for the following command to return `True` as it indicates when the `MachineConfigPool`'s worker has been updated with the latest `MachineConfig` requested (again, this will take about 10 minutes in RHPDS): 
+Now wait for the following command to return `True` as it indicates when the `MachineConfigPool`'s worker has been updated with the latest `MachineConfig` requested (again, this will take at least 10 minutes in RHPDS): 
 
 ~~~bash
 $ oc get machineconfigpool worker -o=jsonpath="{.status.conditions[?(@.type=='Updated')].status}{\"\n\"}"
@@ -386,10 +375,10 @@ hostpathprovisioner.hostpathprovisioner.kubevirt.io/hostpath-provisioner created
 When you've applied this config, an additional pod will be spawned on each of the worker nodes; this pod is responsible for managing the hostpath access on the respective host; note the shorter age (42s in the example below):
 
 ~~~bash
-$ oc get pods -n openshift-cnv | grep hostpath
-hostpath-provisioner-chx6l                        1/1     Running   0          14s
-hostpath-provisioner-n2xwq                        1/1     Running   0          14s
-hostpath-provisioner-operator-584d87f57d-r89c4    1/1     Running   0          9m41s
+[cloud-user@bastion ~]$ oc get pods -n openshift-cnv | grep hostpath
+hostpath-provisioner-dzgjz                         1/1     Running           0          12s
+hostpath-provisioner-kv8qw                         1/1     Running           0          12s
+hostpath-provisioner-operator-8f985f9-sln69        1/1     Running           0          6m34s
 ~~~
 
 We're now ready to configure a new `StorageClass` for the HostPath based storage:
@@ -420,7 +409,7 @@ metadata:
   labels:
     app: containerized-data-importer
   annotations:
-    cdi.kubevirt.io/storage.import.endpoint: "http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2"
+    cdi.kubevirt.io/storage.import.endpoint: "https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.2.2004-20200611.2.x86_64.qcow2"
 spec:
   volumeMode: Filesystem
   storageClassName: hostpath-provisioner
@@ -439,33 +428,58 @@ We use CDI to ensure the volume we're requesting uses the same Centos8 image we 
 ~~~bash
 $ oc get pods
 NAME                        READY   STATUS    RESTARTS   AGE
-importer-centos8-hostpath   1/1     Running   0          15s
+importer-centos8-hostpath   1/1     Running   0          6s
+importer-centos8-nfs        1/1     Running   0          3m12s
 ~~~
 
-> **NOTE**: You can watch the output of this importer pod with `$ oc logs -f importer-centos8-hostpath`.  Didn't see any pods? You likely just missed it. To be sure the PV was created continue to the next command.
+You can watch the output of this importer pod with 
+`oc logs -f importer-centos8-hostpath`. 
 
-Once that pod has finished let's check the status of the PV's:
+~~~bash
+[cloud-user@bastion ~]$ oc logs -f importer-centos8-hostpath
+I0724 03:43:59.574566       1 importer.go:51] Starting importer
+I0724 03:43:59.574670       1 importer.go:107] begin import process
+I0724 03:43:59.740542       1 data-processor.go:275] Calculating available size
+I0724 03:43:59.747340       1 data-processor.go:283] Checking out file system volume size.
+I0724 03:43:59.747370       1 data-processor.go:287] Request image size not empty.
+I0724 03:43:59.747408       1 data-processor.go:292] Target size 10Gi.
+I0724 03:43:59.762315       1 data-processor.go:205] New phase: Convert
+I0724 03:43:59.762366       1 data-processor.go:211] Validating image
+I0724 03:44:00.130339       1 qemu.go:212] 0.00
+I0724 03:44:03.498343       1 qemu.go:212] 1.00
+I0724 03:44:05.404291       1 qemu.go:212] 2.00
+I0724 03:44:06.937406       1 qemu.go:212] 3.01
+(...)
+I0724 03:46:28.823264       1 qemu.go:212] 97.64
+I0724 03:46:29.608848       1 qemu.go:212] 98.64
+I0724 03:46:30.405216       1 qemu.go:212] 99.65
+I0724 03:46:30.745609       1 data-processor.go:205] New phase: Resize
+I0724 03:46:30.755972       1 data-processor.go:265] No need to resize image. Requested size: 10Gi, Image size: 10737418240.
+I0724 03:46:30.755994       1 data-processor.go:205] New phase: Complete
+I0724 03:46:30.756095       1 importer.go:160] Import complete
+~~~
+
+Allow the import to finish and check the status of the PV's:
 
 ~~~bash
 $ oc get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                             STORAGECLASS           REASON   AGE
-nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound       default/centos8-nfs                               nfs                             33m
-nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                             33m
-pvc-2c361fda-f643-45bb-8c53-d714ff2cfa0f   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                        20h
-pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8   29Gi       RWO            Delete           Bound       default/centos8-hostpath                          hostpath-provisioner            60s
+nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound       default/centos8-nfs                               nfs                             16m
+nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                             16m
+pvc-11b35321-1aa4-4723-a436-66591f81417c   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                        147m
+pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb   29Gi       RWO            Delete           Bound       default/centos8-hostpath                          hostpath-provisioner            2m45s
 ~~~
 
 > **NOTE**: The capacity displayed above lists the available space on the host, not the actual size of the persistent volume when being used.
 
-
 Let's look more closely at the PV's. Describe the new hostpath PV (noting that you'll need to adapt for the `uuid` in your environment):
 
 ~~~bash
-$ oc describe pv/pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8
-Name:              pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8
+$ $ oc describe pv/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb
+Name:              pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb
 Labels:            <none>
 Annotations:       hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
-                   kubevirt.io/provisionOnNode: ocp-9pv98-worker-pj2dn
+                   kubevirt.io/provisionOnNode: cluster-august-lhrd5-worker-6w624
                    pv.kubernetes.io/provisioned-by: kubevirt.io/hostpath-provisioner
 Finalizers:        [kubernetes.io/pv-protection]
 StorageClass:      hostpath-provisioner
@@ -477,16 +491,16 @@ VolumeMode:        Filesystem
 Capacity:          29Gi
 Node Affinity:
   Required Terms:
-    Term 0:        kubernetes.io/hostname in [ocp-9pv98-worker-pj2dn]
+    Term 0:        kubernetes.io/hostname in [cluster-august-lhrd5-worker-6w624]
 Message:
 Source:
     Type:          HostPath (bare host directory volume)
-    Path:          /var/hpvolumes/pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8
+    Path:          /var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb
     HostPathType:
 Events:            <none>
 ~~~
 
-There's a few important details here worth noting, namely the `kubevirt.io/provisionOnNode` annotation, and the path of the volume on that node. In the example above you can see that the volume was provisioned on *ocp-9pv98-worker-pj2dn*, one our two worker nodes. 
+There's a few important details here worth noting, namely the `kubevirt.io/provisionOnNode` annotation, and the path of the volume on that node. In the example above you can see that the volume was provisioned on *cluster-august-lhrd5-worker-6w624*, one our two worker nodes. 
 
 Let's look more closely to verify that this truly has been created for us on the designated worker.
 
@@ -495,22 +509,23 @@ Let's look more closely to verify that this truly has been created for us on the
 Create a debug pod and session on the node listed above
 
 ~~~bash
-$ oc debug node/ocp-9pv98-worker-pj2dn
-Starting pod/ocp-9pv98-worker-pj2dn-debug ...
+$ oc debug node/cluster-august-lhrd5-worker-6w624
+Starting pod/cluster-august-lhrd5-worker-6w624-debug ...
 To use host binaries, run `chroot /host`
-Pod IP: 10.0.0.38
+Pod IP: 10.0.0.21
 If you don't see a command prompt, try pressing enter.
 sh-4.2# chroot /host
+sh-4.4#
 ~~~
 
 And review the PVC created in the /var/hpvolumes director
 
 ~~~bash
-sh-4.4# ls -l /var/hpvolumes/pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8/disk.img
--rw-r--r--. 1 root root 10737418240 Jul 21 02:30 /var/hpvolumes/pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8/disk.img
+sh-4.4# ls -l /var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb/disk.img
+-rw-r--r--. 1 root root 10737418240 Jul 24 03:46 /var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb/disk.img
 
-sh-4.4# file /var/hpvolumes/pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8/disk.img
-/var/hpvolumes/pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8/disk.img: DOS/MBR boot sector
+sh-4.4# file /var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb/disk.img
+/var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb/disk.img: DOS/MBR boot sector
 ~~~
 
 And don't forget to exit and terminate the debug pod.
@@ -520,8 +535,6 @@ sh4.4# exit
 sh4.2# exit
 Removing debug pod ...
 
-$ oc whoami
-system:serviceaccount:workbook:cnv
 ~~~
 
 Make sure that you've executed the two `exit` commands above - we need to make sure that you're back to the right shell before continuing, and aren't still inside of the debug pod.

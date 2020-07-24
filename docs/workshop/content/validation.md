@@ -1,7 +1,7 @@
 Let's first see if we can check the nodes; use th web-based terminal on the right:
 
 ~~~bash
-[~] $ oc get nodes
+$ oc get nodes
 NAME                                STATUS   ROLES    AGE   VERSION
 cluster-august-lhrd5-master-0       Ready    master   61m   v1.18.3+b74c5ed
 cluster-august-lhrd5-master-1       Ready    master   61m   v1.18.3+b74c5ed
@@ -15,7 +15,7 @@ cluster-august-lhrd5-worker-mh52l   Ready    worker   42m   v1.18.3+b74c5ed
 Next let's validate the version that we've got deployed, and the status of the cluster operators:
 
 ~~~bash
-[~] $  oc get clusterversion
+$  oc get clusterversion
 NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
 version   4.5.2     True        False         34m     Cluster version is 4.5.2
 ~~~
@@ -23,7 +23,7 @@ version   4.5.2     True        False         34m     Cluster version is 4.5.2
 This cluster is a 4.5.2 deployment and is currently stable (i.e. it is **not** showing as "progessing"). Let's next review the cluster operators and their status. We should expect them to all be available and also not "progressing" or "degraded."
 
 ~~~bash
-[~] $ oc get clusteroperators
+$ oc get clusteroperators
 NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
 authentication                             4.5.2     True        False         False      35m
 cloud-credential                           4.5.2     True        False         False      64m
@@ -63,10 +63,10 @@ storage                                    4.5.2     True        False         F
 OK, so this is likely something that you've all done before, and it's hardly very exciting, but let's have a little bit of fun. Let's deploy a nifty little application inside of a pod and use it to verify that the OpenShift cluster is functioning properly; this will involve building an application from source and exposing it to your web-browser. We'll use the **s2i** (source to image) container type:
 
 ~~~bash
-[~] $ oc project default
-Now using project "default" on server "https://172.30.0.1:443".
+$ oc project default
+Now using project "default" on server "https://api.cluster-august.students.osp.opentlc.com:6443".
 
-[~] oc new-app \
+oc new-app \
 	nodeshift/centos7-s2i-nodejs:12.x~https://github.com/vrutkovs/DuckHunt-JS
 
 (...)
@@ -88,7 +88,7 @@ Our application will now build from source, you can watch it happen with:
 
 ~~~bash
 
-[~] $ oc logs duckhunt-js-1-build -f
+$ oc logs duckhunt-js-1-build -f
 (...)
 
 Successfully pushed image-registry.openshift-image-registry.svc:5000/default/duckhunt-js:latest@sha256:4d0186040826a4be9d678459c5d6831e107a60c403d65a0da77fb076ff89084c
@@ -100,7 +100,7 @@ Push successful
 You can check if the Duckhunt pod has finished building and is `Running`, if it's still showing as `ContainerCreating` just give it a few more seconds:
 
 ~~~bash
-[~] $ oc get pods
+$ oc get pods
 NAME                   READY   STATUS      RESTARTS   AGE
 duckhunt-js-1-build    0/1     Completed   0          19m
 duckhunt-js-1-deploy   0/1     Completed   0          17m
@@ -110,10 +110,10 @@ duckhunt-js-1-qcskl    1/1     Running     0          17m <-- this is the one!
 Now expose the application (via the service) so we can route to it from the outside...
 
 ~~~bash
-[~] $ oc expose svc/duckhunt-js
+$ oc expose svc/duckhunt-js
 route.route.openshift.io/duckhunt-js exposed
 
-[~] $ oc get route duckhunt-js
+$ oc get route duckhunt-js
 NAME          HOST/PORT                                                          PATH   SERVICES      PORT       TERMINATION   W
 ILDCARD
 duckhunt-js   duckhunt-js-default.apps.cluster-august.students.osp.opentlc.com          duckhunt-js   8080-tcp                 N
@@ -127,7 +127,7 @@ You should be able to open up the application in the same browser that you're re
 Now, if you can tear yourself away from the game, let's actually start working with OpenShift Virtualization, first let's just clean up the default project ...
 
 ~~~bash
-[~] $ oc delete dc/duckhunt-js bc/duckhunt-js svc/duckhunt-js route/duckhunt-js
+$ oc delete dc/duckhunt-js bc/duckhunt-js svc/duckhunt-js route/duckhunt-js
 deployment.apps "duckhunt-js" deleted
 buildconfig.build.openshift.io "duckhunt-js" deleted
 service "duckhunt-js" deleted

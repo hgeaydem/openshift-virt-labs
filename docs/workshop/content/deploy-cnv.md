@@ -20,7 +20,11 @@ Next you'll want to select the 'Install' button, which will take you to a second
 
 Make sure that the namespace it will be installed to is "**openshift-cnv**" - it should be the default entry, but make sure. When you're ready, press the **'Subscribe'** button. After a minute or two you'll see that the subscription has been configured successfully:
 
-<img  border="1" src="img/cnv-installed2.png"/>
+<img  border="1" src="img/cnv-installed.png"/>
+
+Wait for the install to complete successfully:
+
+<img  border="1" src="img/operator-ok.png"/>
 
 Next we need to actually deploy all of the CNV components that this subscription provides. Select the "**Container-native virtualization**" link under the '**Name**' column, and you'll be presented with the following:
 
@@ -51,7 +55,7 @@ During this process you will see a lot of pods create and terminate, which will 
 
 <img src="img/deploy-cnv-watch2.png"/>
 
-This will continue for some time, depending on your environment.
+This will continue for some time, depending on your environment. Please ensure it completes successfully.
 
 You will know the process is complete when you can return to the terminal and see that the operator installation has been successful by running the following command:
 
@@ -107,32 +111,32 @@ There's also a few custom resources that get defined too, for example the `NodeN
 
 ~~~bash
 $ oc get nns -A
-NAME                     AGE
-ocp-9pv98-master-0       8m49s
-ocp-9pv98-master-1       8m51s
-ocp-9pv98-master-2       8m49s
-ocp-9pv98-worker-g78bj   8m49s
-ocp-9pv98-worker-pj2dn   8m49s
+NAME                                AGE
+cluster-august-lhrd5-master-0       8m53s
+cluster-august-lhrd5-master-1       9m3s
+cluster-august-lhrd5-master-2       8m58s
+cluster-august-lhrd5-worker-6w624   9m1s
+cluster-august-lhrd5-worker-mh52l   8m53s
 ~~~
 
 Dive a little deeper into the config on one of the workers:
 
 ~~~bash
-$ oc get nns/ocp-9pv98-worker-g78bj -o yaml
+[~] $ oc get nns/cluster-august-lhrd5-worker-6w624 -o yaml
 apiVersion: nmstate.io/v1alpha1
 kind: NodeNetworkState
 metadata:
-  creationTimestamp: "2020-07-21T00:52:52Z"
+  creationTimestamp: "2020-07-24T02:47:36Z"
   generation: 1
-  name: ocp-9pv98-worker-g78bj
+  name: cluster-august-lhrd5-worker-6w624
   ownerReferences:
   - apiVersion: v1
     kind: Node
-    name: ocp-9pv98-worker-g78bj
-    uid: e2b20d97-4c7b-49f4-9596-3acfb8c8c835
-  resourceVersion: "390617"
-  selfLink: /apis/nmstate.io/v1alpha1/nodenetworkstates/ocp-9pv98-worker-g78bj
-  uid: cc8b1eb9-62d0-44d1-acdd-b6130a8d6138
+    name: cluster-august-lhrd5-worker-6w624
+    uid: f49986fe-86bc-484f-ba87-fe220b09892a
+  resourceVersion: "57633"
+  selfLink: /apis/nmstate.io/v1alpha1/nodenetworkstates/cluster-august-lhrd5-worker-6w624
+  uid: 8e9cf029-4523-4ce5-bdd2-35b6093f4e98
 status:
   currentState:
     dns-resolver:
@@ -141,15 +145,15 @@ status:
         server: []
       running:
         search:
-        - ocp.augusts.be
-        - ocp.augusts.be
+        - cluster-august.students.osp.opentlc.com
+        - cluster-august.students.osp.opentlc.com
         server:
         - 10.0.0.10
         - 10.0.0.11
         - 10.0.0.12
-        - 192.168.0.21
-        - 192.168.0.22
-        - 192.168.0.20
+        - 192.168.47.11
+        - 192.168.47.12
+        - 192.168.47.10
     interfaces:
     - ipv4:
         enabled: false
@@ -161,9 +165,7 @@ status:
       type: ovs-interface
     - ipv4:
         address:
-        - ip: 10.0.0.27
-          prefix-length: 16
-        - ip: 10.0.0.7
+        - ip: 10.0.0.21
           prefix-length: 16
         auto-dns: true
         auto-gateway: true
@@ -172,7 +174,7 @@ status:
         enabled: true
       ipv6:
         address:
-        - ip: fe80::5669:8b24:406b:cee8
+        - ip: fe80::78d3:ad44:db4e:12e7
           prefix-length: 64
         auto-dns: true
         auto-gateway: true
@@ -180,14 +182,14 @@ status:
         autoconf: true
         dhcp: true
         enabled: true
-      mac-address: FA:16:3E:2D:45:96
+      mac-address: FA:16:3E:3F:A1:A3
       mtu: 1500
       name: ens3
       state: up
       type: ethernet
     - ipv4:
         address:
-        - ip: 192.168.0.29
+        - ip: 192.168.47.21
           prefix-length: 24
         auto-dns: true
         auto-gateway: true
@@ -199,7 +201,7 @@ status:
 Here you can see the current state of the node (some of the output has been cut), the interfaces attached, and their physical/logical addresses. In a later section we're going to be modifying the network node state by applying a new configuration to allow nodes to utilise another interface to provide pod networking via a **bridge**. We will do this via a `NodeNetworkConfigurationEnactment` or `nnce` in short:
 
 ~~~bash
-$ oc get nnce -n openshift-cnv
+[~] $ oc get nnce -n openshift-cnv
 No resources found in openshift-cnv namespace.
 ~~~
 
