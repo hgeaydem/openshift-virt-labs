@@ -54,30 +54,33 @@ The bastion host is critical to the deployment for a number of reasons; it provi
 
 ### Getting Started
 
-Setup an SSH tunnel to the bastion machine so we can leverage the **squid** proxy server to *easily* access the extra network. You can also use this connection to access the public OpenShift conscole, the hosted lab guide, and any other OpenShift routes that may be internal to RHPDS only. From your workstation, to bastion host  and enable a port forward **from your local machine** to the bastion's private IP address. You may need to login to the machine with your RHPDS credentials and issue an `ip a` command to see the IP.
+Setup an SSH tunnel to the bastion machine so we can leverage the **squid** proxy server to *easily* access the extra network. You can also use this connection to access the public OpenShift conscole, the hosted lab guide, and any other OpenShift routes that may be internal to RHPDS only. From your workstation, to bastion host  and enable a port forward **from your local machine** to the bastion's private IP address. You may need to login to the machine with your RHPDS credentials and issue an `ip a` command to see the IP (in the example below it is 192.168.47.16).
 
 ~~~bash
-$ ssh rhpds-user@public_ip_of_bastion -L 8080:private_ip_of_bastion:3128
+$ $ ssh lab-user@bastion.{{ GUID }}.students.osp.opentlc.com -L 8080:192.168.47.16:3128
 ~~~
 
 This creates a port forward to the squid running on the basition (on 3128) from your local machine's port 8080.
 
 Once this is up and running, set your browser (we've tested Firefox and had the most success with this - your mileage may vary with other browsers) to use **localhost:8080** for all protocols, and make sure you enable ***DNS over SOCKSv5*** - this avoids any challenges with local DNS:
 
-
 <center>
 <img src="docs/workshop/content/img/firefox-proxy.png" width="80%"/>
 </center>
 
+If all has been well, you can open up the lab guide from your browser that has the proxy server enabled, the URL you need to navigate to is: 
 
-If all has been well, you can open up the lab guide from your browser that has the proxy server enabled, the URL you need to navigate to is: TBC After a few self-signed certificate approvals you should see the following self-hosted lab guide running on the cluster you just deployed:
+https://cnv-workbook.apps.cluster-*GUID*.students.osp.opentlc.com/
 
-<img src="docs/workshop/content/img/workbook-ui.png"/>
+> **NOTE**: The email from RHPDS will supply this link as well if you don't know your GUID and cluster name.
 
-> **NOTE**: The two terminals on the right hand side are already pre-configured with the necessary credentials to access the underlying OpenShift cluster, as is the OpenShift Web Console if you select the button above the terminals.
+After a few self-signed certificate approvals you should see the following self-hosted lab guide running on the cluster you just deployed:
 
+<img src="docs/workshop/content/img/workbook-ui2.png"/>
 
-If you want to access the environment outside of the hosted lab guide it's best to use the bastion host as it has all of the necessary credentials setup.
+> **NOTE**: The terminal on the right hand side is already pre-configured with the necessary credentials to access the underlying OpenShift cluster, as is the OpenShift Web Console if you select the button above the terminals.
+
+If you want to access the environment outside of the hosted lab guide you can also use the bastion host as it has all of the necessary credentials setup. 
 
 Furthermore, this is the only node you'll be able to connect to the OpenShift nodes from as it's the one we used to run the installation and therefore the ssh-key has already been imported, for example:
 

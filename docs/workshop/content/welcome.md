@@ -19,9 +19,9 @@ Within the lab you can cut and paste commands directly from the instructions; bu
 
 > **NOTE**: In some browsers and operating systems you may need to use Ctrl-Shift-C / Ctrl-Shift-V to copy/paste!
 
-Please be very aware, this is a work in progress as the feature is changing and evolving. There may be some bugs/typo's, and we very much welcome feedback on the content, what's missing, what would be good to have, etc. Please feel free to submit PR's or raise [GitHub](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds) issues, we welcome the feedback!
+We very much welcome feedback on the content, what's missing, what would be good to have, etc. Please feel free to submit PR's or raise [GitHub](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds) issues! We are always excited to continue to evolve this lab to fit your requirements. So please do let us know what we can add to make it work even better for your needs.
 
-We are also excited to continueb to evolve this lab. Let us know what we can add to make it work even better for your needs.
+Ok, ready? 
 
-Ok, ready? Let's begin!
+Let's begin!
 
