@@ -3,20 +3,17 @@ In this lab we're going to clone a workload and prove that it's identical to the
 Let's begin by checking we have a availale PV for this work:
 
 ~~~bash
-[asimonel-redhat.com@bastion cnv]$ oc get pv
+$ oc get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                             STORAGECLASS           REASON   AGE
-nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound       default/centos8-nfs                               nfs                             91m
-nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                             78m
-pvc-2c361fda-f643-45bb-8c53-d714ff2cfa0f   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                        23h
-pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8   29Gi       RWO            Delete           Bound       default/centos8-hostpath                          hostpath-provisioner            3h1m
+nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound       default/centos8-nfs                               nfs                             55m
+nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                             50m
+pvc-11b35321-1aa4-4723-a436-66591f81417c   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                        4h51m
+pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb   29Gi       RWO            Delete           Bound       default/centos8-hostpath                          hostpath-provisioner            147m
 ~~~
 
-You should have nfs-pv2 marked as `Available`.
+You should have a PV (likely nfs-pv2, but it doesn't have to be) marked as `Available`.
 
-
-And make sure the volume is `Available`:
-
-Next we will create a PVC for that PV that utilises the CDI utility to import the Centos 7 image (from http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2). The syntax should be familiar to you now with the `cdi.kubevirt.io/storage.import.endpoint` annotation indicating the endpoint for CDI to import from.
+Next we will create a PVC for that PV that utilises the CDI utility to import a Centos 7 image (from http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2). The syntax should be familiar to you now with the `cdi.kubevirt.io/storage.import.endpoint` annotation indicating the endpoint for CDI to import from.
 
 ~~~bash
 $ cat << EOF | oc apply -f -
@@ -46,9 +43,9 @@ As before we can watch the process and see the pods:
 ~~~bash
 $ oc get pods
 NAME                                          READY   STATUS    RESTARTS   AGE
-importer-centos7-clone-nfs                    1/1     Running   0          18s
-virt-launcher-centos8-server-hostpath-5mmxw   1/1     Running   0          24m
-virt-launcher-centos8-server-nfs-58bxn        1/1     Running   0          42m
+importer-centos7-clone-nfs                    1/1     Running   0          5s
+virt-launcher-centos8-server-hostpath-zpgwr   1/1     Running   0          35m
+virt-launcher-centos8-server-nfs-5d8zd        1/1     Running   0          42m
 ~~~
 
 Be fast!
@@ -83,20 +80,20 @@ The bound PV:
 ~~~bash
 $ oc get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                                             STORAGECLASS           REASON   AGE
-nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound    default/centos8-nfs                               nfs                             96m
-nfs-pv2                                    10Gi       RWO,RWX        Delete           Bound    default/centos7-clone-nfs                         nfs                             83m
-pvc-2c361fda-f643-45bb-8c53-d714ff2cfa0f   100Gi      RWO            Delete           Bound    openshift-image-registry/image-registry-storage   standard                        23h
-pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8   29Gi       RWO            Delete           Bound    default/centos8-hostpath                          hostpath-provisioner
+nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound    default/centos8-nfs                               nfs                             56m
+nfs-pv2                                    10Gi       RWO,RWX        Delete           Bound    default/centos7-clone-nfs                         nfs                             52m
+pvc-11b35321-1aa4-4723-a436-66591f81417c   100Gi      RWO            Delete           Bound    openshift-image-registry/image-registry-storage   standard                        4h53m
+pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb   29Gi       RWO            Delete           Bound    default/centos8-hostpath                          hostpath-provisioner            148m
 ~~~
 
-And finally our working PVC:
+And finally our new PVC:
 
 ~~~bash
 $ oc get pvc
 NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS           AGE
-centos7-clone-nfs   Bound    nfs-pv2                                    10Gi       RWO,RWX        nfs                    73s
-centos8-hostpath    Bound    pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8   29Gi       RWO            hostpath-provisioner   3h6m
-centos8-nfs         Bound    nfs-pv1                                    10Gi       RWO,RWX        nfs                    77m
+centos7-clone-nfs   Bound    nfs-pv2                                    10Gi       RWO,RWX        nfs                    52s
+centos8-hostpath    Bound    pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb   29Gi       RWO            hostpath-provisioner   149m
+centos8-nfs         Bound    nfs-pv1                                    10Gi       RWO,RWX        nfs                    49m
 ~~~
 
 ### Centos 7 Virtual Machine
@@ -159,7 +156,7 @@ spec:
              name: cloudinitdisk
          interfaces:
            - bridge: {}
-             macAddress: '42:8a:6f:75:d6:4d'
+             macAddress: 'de:ad:be:ef:00:03'
              model: e1000
              name:  tuning-bridge-fixed
          rng: {}
@@ -219,22 +216,21 @@ centos8-server-hostpath   7h21m   true
 centos8-server-nfs        7h39m   true
 
 $ oc get vmi
-NAME                      AGE     PHASE     IP                NODENAME
-centos7-clone-nfs         119s    Running   192.168.0.37/24   ocp-9pv98-worker-pj2dn
-centos8-server-hostpath   7h23m   Running   192.168.0.41/24   ocp-9pv98-worker-pj2dn
-centos8-server-nfs        7h40m   Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+NAME                      AGE    PHASE     IP                 NODENAME
+centos7-clone-nfs         103s   Running   192.168.47.22/24   cluster-august-lhrd5-worker-6w624
+centos8-server-hostpath   41m    Running   192.168.47.15/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs        48m    Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
-And remember how we set a few things via cloud-init? Let's see if it worked and SSH to the IP of this newly created VM. Login as the centos user with the password redhat.
+And remember how we set a few things via cloud-init? Let's see if it worked and SSH to the IP of this newly created VM. Login as the `centos` user with the password `redhat`.
 
 ~~~bash
-$ ssh centos@192.168.0.37
-The authenticity of host '192.168.0.37 (192.168.0.37)' can't be established.
-ECDSA key fingerprint is SHA256:cw6CPqabOpoC+DWIMHH0GBPtrWyBma8f1ksRODU8ZF0.
-ECDSA key fingerprint is MD5:77:43:07:47:cf:3c:f1:d0:9d:bc:d9:51:82:ee:77:7f.
-Are you sure you want to continue connecting (yes/no)? yes
-Warning: Permanently added '192.168.0.37' (ECDSA) to the list of known hosts.
-centos@192.168.0.37's password: [redhat]
+$ ssh centos@192.168.47.22
+The authenticity of host '192.168.47.22 (192.168.47.22)' can't be established.
+ECDSA key fingerprint is SHA256:/tdwPiOJAUQ0c43P8nD2YIj49e07CGsNe2lp/TvHqHg.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '192.168.47.22' (ECDSA) to the list of known hosts.
+centos@192.168.47.22's password:
 
 [centos@centos7-clone-nfs ~]$
 ~~~
@@ -245,27 +241,16 @@ And check for the running nginx service:
 [centos@centos7-clone-nfs ~]$ sudo systemctl status nginx
 ● nginx.service - Nginx Podman container
    Loaded: loaded (/etc/systemd/system/nginx.service; enabled; vendor preset: disabled)
-   Active: active (running) since Tue 2020-07-21 12:34:21 UTC; 4min 15s ago
- Main PID: 8751 (podman)
+   Active: active (running) since Fri 2020-07-24 06:18:14 UTC; 26s ago
+ Main PID: 8746 (podman)
    CGroup: /system.slice/nginx.service
-           └─8751 /usr/bin/podman run --net=host nginxdemos/hello
-
-Jul 21 12:34:25 centos7-clone-nfs podman[8751]: Copying blob sha256:fdcbcb327323fbaa5a1c96ea828d93a6a7c855727a663a0f5b1f4da9750c4a36
-Jul 21 12:34:26 centos7-clone-nfs podman[8751]: Copying blob sha256:a70e975849d830c4c22cc9b1642f394f6c07100030343e179ad4914c58525420
-Jul 21 12:34:26 centos7-clone-nfs podman[8751]: Copying config sha256:aedf47d433f18c22663722b023ea09d34504aa3da582613ed2a44a98e8a1af68
-Jul 21 12:34:26 centos7-clone-nfs podman[8751]: Writing manifest to image destination
-Jul 21 12:34:26 centos7-clone-nfs podman[8751]: Storing signatures
-Jul 21 12:34:29 centos7-clone-nfs podman[8751]: 2020-07-21 12:34:29.711049831 +0000 UTC m=+7.710755515 image pull
-Jul 21 12:34:29 centos7-clone-nfs podman[8751]: 2020-07-21 12:34:29.845254663 +0000 UTC m=+7.844960536 container create 96dd159336341eadc870650893fd691995f29..._williams)
-Jul 21 12:34:30 centos7-clone-nfs podman[8751]: 2020-07-21 12:34:30.146363385 +0000 UTC m=+8.146068588 container init 96dd159336341eadc870650893fd691995f295c..._williams)
-Jul 21 12:34:30 centos7-clone-nfs podman[8751]: 2020-07-21 12:34:30.19590446 +0000 UTC m=+8.195610431 container start 96dd159336341eadc870650893fd691995f295c..._williams)
-Jul 21 12:34:30 centos7-clone-nfs podman[8751]: 2020-07-21 12:34:30.196896975 +0000 UTC m=+8.196602460 container attach 96dd159336341eadc870650893fd691995f29..._williams)
-Hint: Some lines were ellipsized, use -l to show in full.
+           └─8746 /usr/bin/podman run --net=host nginxdemos/hello
+(...)
 ~~~
 
-Let's quickly verify that this is working as expected - you should be able to navigate directly to the IP address of your machine in your browser - recalling that in the example it's *192.168.0.37*:
+Let's quickly verify that this is working as expected - you should be able to navigate directly to the IP address of your machine in your browser - recalling that in the example it's *192.168.47.22*:
 
-<img src="img/centos7-clone-nginx.png"/>
+<img src="img/centos7-clone-nginx2.png"/>
 
 > **NOTE**: These steps are important for both this lab and a future one; please ensure they complete correctly.
 
@@ -274,7 +259,8 @@ Remember to logout of your running VM:
 ~~~bash
 [centos@centos7-clone-nfs ~]$ exit
 logout
-Connection to 192.168.0.37 closed.
+Connection to 192.168.47.22 closed.
+[cloud-user@bastion ~]$
 ~~~
 
 We now are going to shutdown the VM so we can clone it without risking filesystem corruption. To do that it's time to introduce a new tool, `virtctl`.
@@ -286,7 +272,7 @@ $ virtctl stop centos7-clone-nfs
 VM centos7-clone-nfs was scheduled to stop
 ~~~
 
-And the VM instance is removed:
+And the VM **instance** IVMI) is removed:
 
 ~~~bash
 $ oc get vmi
@@ -361,10 +347,10 @@ View all your PVCs, and the new clone:
 ~~~bash
 $ oc get pvc
 NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS           AGE
-centos7-clone-dv    Bound    pvc-2abb3733-b268-4abf-9aff-f13a886906ee   29Gi       RWO            hostpath-provisioner   4m21s
-centos7-clone-nfs   Bound    nfs-pv2                                    10Gi       RWO,RWX        nfs                    3h19m
-centos8-hostpath    Bound    pvc-cf71987e-a9ff-4f2a-85de-124c578acaf8   29Gi       RWO            hostpath-provisioner   10h
-centos8-nfs         Bound    nfs-pv1
+centos7-clone-dv    Bound    pvc-0f9fdc0a-8a95-4ec8-863c-cd9ca992bd02   29Gi       RWO            hostpath-provisioner   3m
+centos7-clone-nfs   Bound    nfs-pv2                                    10Gi       RWO,RWX        nfs                    21m
+centos8-hostpath    Bound    pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb   29Gi       RWO            hostpath-provisioner   170m
+centos8-nfs         Bound    nfs-pv1                                    10Gi       RWO,RWX        nfs                    70m
 ~~~
 
 
@@ -421,7 +407,7 @@ spec:
              name: disk0
          interfaces:
            - bridge: {}
-             macAddress: '42:8a:6f:75:d6:4e'
+             macAddress: 'de:ad:be:ef:00:04'
              model: e1000
              name:  tuning-bridge-fixed
          rng: {}
@@ -449,14 +435,14 @@ virtualmachine.kubevirt.io/centos7-clone-dv created
 After a few minutes you should see the new virtual machine running:
 
 ~~~bash
-[asimonel-redhat.com@bastion cnv]$ oc get vmi
-NAME                      AGE   PHASE     IP                NODENAME
-centos7-clone-dv          16s   Running                     ocp-9pv98-worker-pj2dn
-centos8-server-hostpath   8h    Running   192.168.0.41/24   ocp-9pv98-worker-pj2dn
-centos8-server-nfs        8h    Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+$ oc get vmi
+NAME                      AGE    PHASE     IP                 NODENAME
+centos7-clone-dv          109s   Running                      cluster-august-lhrd5-worker-6w624
+centos8-server-hostpath   61m    Running   192.168.47.15/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs        68m    Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
-Now, as mentioned, there is no IP assigned. This is due to the cloned NIC file. Let's fix it with `virtctl`.
+Now, as mentioned, there is no IP assigned. This is due to a cloned NIC file. But that's cool, we got this. Let's fix it with some of the features of `virtctl`!
 
 Login to the newly running instance (it's a clone so the username and pasword are the same (centos/redhat):
 
@@ -493,18 +479,11 @@ But this **is** a clone, and even ngnix is ready:
 [centos@centos7-clone-nfs ~]$ sudo systemctl status nginx
 ● nginx.service - Nginx Podman container
    Loaded: loaded (/etc/systemd/system/nginx.service; enabled; vendor preset: disabled)
-   Active: active (running) since Tue 2020-07-21 13:44:17 UTC; 6min ago
- Main PID: 558 (podman)
+   Active: active (running) since Fri 2020-07-24 06:37:23 UTC; 1min 40s ago
+ Main PID: 559 (podman)
    CGroup: /system.slice/nginx.service
-           └─558 /usr/bin/podman run --net=host nginxdemos/hello
-
-Jul 21 13:44:17 centos7-clone-nfs systemd[1]: Started Nginx Podman container.
-Jul 21 13:44:24 centos7-clone-nfs podman[558]: 2020-07-21 13:44:24.874658687...h
-Jul 21 13:44:25 centos7-clone-nfs podman[558]: 2020-07-21 13:44:25.065745841...)
-Jul 21 13:44:25 centos7-clone-nfs podman[558]: 2020-07-21 13:44:25.829040942...)
-Jul 21 13:44:25 centos7-clone-nfs podman[558]: 2020-07-21 13:44:25.892670008...)
-Jul 21 13:44:25 centos7-clone-nfs podman[558]: 2020-07-21 13:44:25.89340489 ...)
-Hint: Some lines were ellipsized, use -l to show in full.
+           └─559 /usr/bin/podman run --net=host nginxdemos/hello
+(...)
 ~~~
 
 So let's fix this up. Simply edit `/etc/sysconfig/network-scripts/ifcfg-eth0` and remove the HWADDR line entirely.
@@ -544,10 +523,10 @@ And the IP is now assigned
     inet6 ::1/128 scope host
        valid_lft forever preferred_lft forever
 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
-    link/ether 42:8a:6f:75:d6:4e brd ff:ff:ff:ff:ff:ff
-    inet 192.168.0.27/24 brd 192.168.0.255 scope global dynamic eth0
-       valid_lft 86397sec preferred_lft 86397sec
-    inet6 fe80::408a:6fff:fe75:d64e/64 scope link
+    link/ether de:ad:be:ef:00:04 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.47.17/24 brd 192.168.47.255 scope global dynamic eth0
+       valid_lft 86398sec preferred_lft 86398sec
+    inet6 fe80::dcad:beff:feef:4/64 scope link
        valid_lft forever preferred_lft forever
 ~~~
 
@@ -564,25 +543,25 @@ and check all is well with `oc`
 
 ~~~bash
 $ oc get vmi
-NAME                      AGE   PHASE     IP                NODENAME
-centos7-clone-dv          10m   Running   192.168.0.27/24   ocp-9pv98-worker-pj2dn
-centos8-server-hostpath   8h    Running   192.168.0.41/24   ocp-9pv98-worker-pj2dn
-centos8-server-nfs        9h    Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+NAME                      AGE     PHASE     IP                 NODENAME
+centos7-clone-dv          3m57s   Running   192.168.47.17/24   cluster-august-lhrd5-worker-6w624
+centos8-server-hostpath   63m     Running   192.168.47.15/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs        70m     Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 ### Test the clone
 
-Connect your browser to IP on the DV clone (in this case that is: http://192.168.0.27 and you should find the **ngnix** server you configured on the original host, prior to the clone, pleasantly serving your request:
+Connect your browser to IP on the DV clone (in this case that is: http://192.168.47.17 and you should find the **ngnix** server you configured on the original host, prior to the clone, pleasantly serving your request:
 
-<img src="img/clone-nginx.png"/>
+<img src="img/dv-clone-nginx.png"/>
 
-We can see the IP is different, but the old host name has peristed; a true clone!
+We can see the IP is different, but the old host name has peristed; welcome to clone club!
 
 That's it! You've proven that your clone has worked, and that the hostpath based volume is an identical copy of the original NFS-based one.
 
 ### Clean up
 
-Before moving on to the next lab let's clean up some VMs so we ensure our environment has all the resources it might need; we're going to delete our Centos 8 hostpath VM and both our Centos 7 VMs:
+Before moving on to the next lab let's clean up some VMs so we ensure our environment has all the resources it might need; we're going to delete our Centos 8 hostpath-based VM and both our Centos 7 VMs:
 
 ~~~bash
 $ oc delete vm/centos7-clone-dv vm/centos8-server-hostpath vm/centos7-clone-nfs
@@ -591,11 +570,17 @@ virtualmachine.kubevirt.io "centos8-server-hostpath" deleted
 virtualmachine.kubevirt.io "centos7-clone-nfs" deleted
 ~~~
 
-> **NOTE**: If you check `oc get vmi` too quickly you might see the VMs in a `Failed` state. This is normal and when you check again they should disappear accordingly.
+> **NOTE**: If you check `oc get vmi` too quickly (example below) you might see the VMs in a `Failed` state. This is normal and when you check again they should disappear accordingly.
 
 ~~~bash
 $ oc get vmi
-NAME                 AGE   PHASE     IP                NODENAME
-centos8-server-nfs   9h    Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+NAME                      AGE     PHASE     IP                 NODENAME
+centos7-clone-dv          6m46s   Failed    192.168.47.17/24   cluster-august-lhrd5-worker-6w624
+centos8-server-hostpath   66m     Failed    192.168.47.15/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs        73m     Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+
+$ oc get vmi
+NAME                 AGE   PHASE     IP                 NODENAME
+centos8-server-nfs   73m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 ~~~
 

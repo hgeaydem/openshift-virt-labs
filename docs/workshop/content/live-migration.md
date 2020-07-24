@@ -8,8 +8,8 @@ In our lab you should now have only one VM running. You can check that, and view
 
 ~~~bash
 $ oc get vmi
-NAME                 AGE   PHASE     IP                NODENAME
-centos8-server-nfs   19h   Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+NAME                 AGE   PHASE     IP                 NODENAME
+centos8-server-nfs   77m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 In this example we can see the `centos8-server-nfs` instance is on `ocp-9pv98-worker-pj2dn`. As you may recall we deployed this instance with the `LiveMigrate` `evictionStrategy` strategy on an NFS-based, RWX-enabled PVC. You can also review the instance with `oc describe` to ensure it is enabled.
@@ -66,99 +66,154 @@ $ watch "oc get virtualmachineinstancemigration/migration-job -o yaml | tail"
 
 Every 1.0s: oc get virtualmachineinstancemigration/migration-job -o yaml | tail                                                                   Tue Jul 21 20:57:47 2020
 
-    time: "2020-07-22T00:55:42Z"
+    time: "2020-07-24T06:48:34Z"
   name: migration-job
   namespace: default
-  resourceVersion: "1206211"
+  resourceVersion: "186751"
   selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachineinstancemigrations/migration-job
-  uid: 3a06db36-7a07-4819-84c4-f056d0b406eb
+  uid: d9e57fd2-6a95-4e71-aff7-f681205189e8
 spec:
   vmiName: centos8-server-nfs
 status:
-  phase: Scheduling                                 <-----------
+  phase: Scheduled                           <-----------
 ~~~
 
-Then `Running`
+Next `phase: TargetReady`
 
 ~~~bash
 
-    time: "2020-07-22T00:55:42Z"
+    time: "2020-07-24T06:48:34Z"
   name: migration-job
   namespace: default
-  resourceVersion: "1207123"
+  resourceVersion: "186759"
   selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachineinstancemigrations/migration-job
-  uid: 3a06db36-7a07-4819-84c4-f056d0b406eb
+  uid: d9e57fd2-6a95-4e71-aff7-f681205189e8
+spec:
+  vmiName: centos8-server-nfs
+status:
+  phase: TargetReady                          <-----------
+
+~~~
+
+Then `phase: Running `
+
+~~~bash
+
+    time: "2020-07-24T06:48:39Z"
+  name: migration-job
+  namespace: default
+  resourceVersion: "186801"
+  selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachineinstancemigrations/migration-job
+  uid: d9e57fd2-6a95-4e71-aff7-f681205189e8
 spec:
   vmiName: centos8-server-nfs
 status:
   phase: Running                                 <-----------
 ~~~
 
-And then to `Succeeded`:
+And then to `phase: Succeeded `:
 
 ~~~bash
 
-    time: "2020-07-22T00:55:42Z"
+    time: "2020-07-24T06:48:45Z"
   name: migration-job
   namespace: default
-  resourceVersion: "1208521"
+  resourceVersion: "186873"
   selfLink: /apis/kubevirt.io/v1alpha3/namespaces/default/virtualmachineinstancemigrations/migration-job
-  uid: 3a06db36-7a07-4819-84c4-f056d0b406eb
+  uid: d9e57fd2-6a95-4e71-aff7-f681205189e8
 spec:
   vmiName: centos8-server-nfs
 status:
-  phase: Succeeded                             <-----------
+  phase: Succeeded                           <-----------
 ~~~
+
+Pretty quick!
 
 Finally view the `vmi` object and you can see the new underlying host:
 
 ~~~bash
 $ oc get vmi/centos8-server-nfs
-NAME                 AGE   PHASE     IP                NODENAME
-centos8-server-nfs   20h   Running   192.168.0.28/24   ocp-9pv98-worker-g78bj
+NAME                 AGE   PHASE     IP                 NODENAME
+centos8-server-nfs   81m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-mh52l
 ~~~
 
-In the above example we have moved the VM from **ocp-9pv98-worker-pj2dn** to **ocp-9pv98-worker-g78bj** successfully.
+In the above example we have moved the VM from **cluster-august-lhrd5-worker-6w624** to **cluster-august-lhrd5-worker-mh52l** successfully.
 
-Live Migration in OpenShift virtualisation is quite easy. If you have time, try some other examples. Perhaps start a ping and migrate the machine back. Do you see anything in the ping to indicate the process?
+Live Migration in OpenShift Virtualization is quite easy. If you have time, try some more migrations. Perhaps start a ping and migrate the machine back. Do you see anything in the ping to indicate the process?
 
 > **NOTE**: If you try and run the same migration job it will report `unchanged`. To run a new job, run the same example as above, but change the job name in the metadata section to something like `name: migration-job2`
 
-Also, rerun the `oc describe vmi centos8-server-nfs` after running a few migrations. You'll see the object is updated with details of the migrations:
+For instance:
 
 ~~~bash
-$ oc describe vmi centos8-server-nfs
-(...)
+$ cat << EOF | oc apply -f -
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachineInstanceMigration
+metadata:
+  name: migration-job2
+spec:
+  vmiName: centos8-server-nfs
+EOF
+
+virtualmachineinstancemigration.kubevirt.io/migration-job2 created
+~~~
+
+And so on!
+
+When done with your tests rerun the describe command `oc describe vmi centos8-server-nfs` after running a few migrations. You'll see the object is updated with details of those actions. 
+
+~~~bash
+$ oc describe vmi centos8-server-nfs | tail -n 50
+  Guest OS Info:
+    Id:              centos
+    Kernel Release:  4.18.0-193.6.3.el8_2.x86_64
+    Kernel Version:  #1 SMP Wed Jun 10 11:09:32 UTC 2020
+    Name:            CentOS Linux
+    Pretty Name:     CentOS Linux 8 (Core)
+    Version:         8
+    Version Id:      8
+  Interfaces:
+    Interface Name:  eth0
+    Ip Address:      192.168.47.34/24
+    Ip Addresses:
+      192.168.47.34/24
+      fe80::dcad:beff:feef:1/64
+    Mac:             de:ad:be:ef:00:01
+    Name:            tuning-bridge-fixed
   Migration Method:  BlockMigration
   Migration State:
     Completed:        true
-    End Timestamp:    2020-07-22T01:02:38Z
-    Migration UID:    44885086-9e79-4d34-9de8-799184ae5818
-    Source Node:      ocp-9pv98-worker-pj2dn
-    Start Timestamp:  2020-07-22T01:02:31Z
+    End Timestamp:    2020-07-24T06:54:21Z
+    Migration UID:    c158e695-6f62-4583-8139-13bf9bc40377
+    Source Node:      cluster-august-lhrd5-worker-6w624
+    Start Timestamp:  2020-07-24T06:54:11Z
     Target Direct Migration Node Ports:
-      38725:                      49152
-      43441:                      0
-      46869:                      49153
-    Target Node:                  ocp-9pv98-worker-g78bj
-    Target Node Address:          10.131.0.4
+      34065:                      49152
+      37011:                      0
+      38249:                      49153
+    Target Node:                  cluster-august-lhrd5-worker-mh52l
+    Target Node Address:          10.131.0.5
     Target Node Domain Detected:  true
-    Target Pod:                   virt-launcher-centos8-server-nfs-kkp2m
-  Node Name:                      ocp-9pv98-worker-g78bj
+    Target Pod:                   virt-launcher-centos8-server-nfs-t6bvd
+  Node Name:                      cluster-august-lhrd5-worker-mh52l
   Phase:                          Running
   Qos Class:                      Burstable
 Events:
-  Type    Reason           Age                     From                                  Message
-  ----    ------           ----                    ----                                  -------
-  Normal  PreparingTarget  9m56s                   virt-handler, ocp-9pv98-worker-g78bj  Migration Target is listening at 10.131.0.4, on ports: 33213,33617,41767
-  Normal  PreparingTarget  9m47s (x11 over 9m56s)  virt-handler, ocp-9pv98-worker-g78bj  VirtualMachineInstance Migration Target Prepared.
-  Normal  Deleted          9m47s                   virt-handler, ocp-9pv98-worker-pj2dn  Signaled Deletion
-  Normal  Created          4m48s (x14 over 9m47s)  virt-handler, ocp-9pv98-worker-g78bj  VirtualMachineInstance defined.
-  Normal  PreparingTarget  3m49s                   virt-handler, ocp-9pv98-worker-pj2dn  Migration Target is listening at 10.128.2.4, on ports: 35217,38319,37603
-  Normal  PreparingTarget  3m48s (x2 over 3m49s)   virt-handler, ocp-9pv98-worker-pj2dn  VirtualMachineInstance Migration Target Prepared.
-  Normal  Created          2m58s (x38 over 20h)    virt-handler, ocp-9pv98-worker-pj2dn  VirtualMachineInstance defined.
-  Normal  Migrating        2m51s (x12 over 9m56s)  virt-handler, ocp-9pv98-worker-pj2dn  VirtualMachineInstance is migrating.
-  Normal  Migrated         2m51s (x4 over 9m47s)   virt-handler, ocp-9pv98-worker-pj2dn  The VirtualMachineInstance migrated to node ocp-9pv98-worker-g78bj.
+  Type    Reason            Age                     From                                             Message
+  ----    ------            ----                    ----                                             -------
+  Normal  SuccessfulCreate  86m                     disruptionbudget-controller                      Created PodDisruptionBudget kubevirt-disruption-budget-ccg67
+  Normal  SuccessfulCreate  86m                     virtualmachine-controller                        Created virtual machine pod virt-launcher-centos8-server-nfs-5d8zd
+  Normal  Started           86m                     virt-handler, cluster-august-lhrd5-worker-6w624  VirtualMachineInstance started.
+  Normal  PreparingTarget   7m34s                   virt-handler, cluster-august-lhrd5-worker-mh52l  Migration Target is listening at 10.131.0.5, on ports: 39687,41135,36627
+  Normal  Deleted           7m23s                   virt-handler, cluster-august-lhrd5-worker-6w624  Signaled Deletion
+  Normal  PreparingTarget   7m23s (x11 over 7m34s)  virt-handler, cluster-august-lhrd5-worker-mh52l  VirtualMachineInstance Migration Target Prepared.
+  Normal  Migrated          7m23s (x2 over 7m23s)   virt-handler, cluster-august-lhrd5-worker-6w624  The VirtualMachineInstance migrated to node cluster-august-lhrd5-worker-mh52l.
+  Normal  Migrating         7m23s (x3 over 7m34s)   virt-handler, cluster-august-lhrd5-worker-6w624  VirtualMachineInstance is migrating.
+  Normal  Created           3m23s (x13 over 7m23s)  virt-handler, cluster-august-lhrd5-worker-mh52l  VirtualMachineInstance defined.
+  Normal  PreparingTarget   2m46s (x2 over 2m46s)   virt-handler, cluster-august-lhrd5-worker-6w624  VirtualMachineInstance Migration Target Prepared.
+  Normal  PreparingTarget   2m46s                   virt-handler, cluster-august-lhrd5-worker-6w624  Migration Target is listening at 10.128.2.5, on ports: 45665,41211,45683
+  Normal  Created           2m34s (x31 over 86m)    virt-handler, cluster-august-lhrd5-worker-6w624  VirtualMachineInstance defined.
+  Normal  Deleted           2m34s                   virt-handler, cluster-august-lhrd5-worker-mh52l  Signaled Deletion
 ~~~
 
 ## Node Maintenance
@@ -169,19 +224,19 @@ Let's take a look at the current running virtual machines and the nodes we have 
 
 ~~~bash
 $ oc get nodes
-NAME                     STATUS                     ROLES    AGE   VERSION
-ocp-9pv98-master-0       Ready                      master   43h   v1.18.3+b74c5ed
-ocp-9pv98-master-1       Ready                      master   43h   v1.18.3+b74c5ed
-ocp-9pv98-master-2       Ready                      master   43h   v1.18.3+b74c5ed
-ocp-9pv98-worker-g78bj   Ready                      worker   42h   v1.18.3+b74c5ed
-ocp-9pv98-worker-pj2dn   Ready                      worker   42h   v1.18.3+b74c5ed
+NAME                                STATUS   ROLES    AGE     VERSION
+cluster-august-lhrd5-master-0       Ready    master   5h57m   v1.18.3+b74c5ed
+cluster-august-lhrd5-master-1       Ready    master   5h57m   v1.18.3+b74c5ed
+cluster-august-lhrd5-master-2       Ready    master   5h57m   v1.18.3+b74c5ed
+cluster-august-lhrd5-worker-6w624   Ready    worker   5h38m   v1.18.3+b74c5ed
+cluster-august-lhrd5-worker-mh52l   Ready    worker   5h38m   v1.18.3+b74c5ed
 
 $ oc get vmi
-NAME                 AGE   PHASE     IP                NODENAME
-centos8-server-nfs   20h   Running   192.168.0.28/24   ocp-9pv98-worker-g78bj
+NAME                 AGE   PHASE     IP                 NODENAME
+centos8-server-nfs   87m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-mh52
 ~~~
 
-In this environment, we have one virtual machine running on *ocp-9pv98-worker-g78bj*. Let's take down the node for maintenance and ensure that our workload (VM) stays up and running:
+In this environment, we have one virtual machine instance running on *cluster-august-lhrd5-worker-mh52*. Let's mark that node for maintenance and ensure that our workload (VMI) moves to the available node:
 
 ~~~bash
 $ cat << EOF | oc apply -f -
@@ -190,7 +245,7 @@ kind: NodeMaintenance
 metadata:
   name: worker-maintenance
 spec:
-  nodeName: ocp-9pv98-worker-g78bj
+  nodeName: cluster-august-lhrd5-worker-mh52l
   reason: "Worker Maintenance - Back Soon"
 EOF
 
@@ -202,29 +257,26 @@ nodemaintenance.kubevirt.io/worker-maintenance created
 Now let's check the status of our environment:
 
 ~~~bash
-$ oc project default
-Now using project "default" on server "https://172.30.0.1:443".
-
 $ oc get nodes
-NAME                     STATUS                     ROLES    AGE   VERSION
-ocp-9pv98-master-0       Ready                      master   43h   v1.18.3+b74c5ed
-ocp-9pv98-master-1       Ready                      master   43h   v1.18.3+b74c5ed
-ocp-9pv98-master-2       Ready                      master   43h   v1.18.3+b74c5ed
-ocp-9pv98-worker-g78bj   Ready,SchedulingDisabled   worker   42h   v1.18.3+b74c5ed
-ocp-9pv98-worker-pj2dn   Ready                      worker   42h   v1.18.3+b74c5ed
+NAME                                STATUS                     ROLES    AGE     VERSION
+cluster-august-lhrd5-master-0       Ready                      master   5h58m   v1.18.3+b74c5ed
+cluster-august-lhrd5-master-1       Ready                      master   5h58m   v1.18.3+b74c5ed
+cluster-august-lhrd5-master-2       Ready                      master   5h58m   v1.18.3+b74c5ed
+cluster-august-lhrd5-worker-6w624   Ready                      worker   5h39m   v1.18.3+b74c5ed
+cluster-august-lhrd5-worker-mh52l   Ready,SchedulingDisabled   worker   5h39m   v1.18.3+b74c5ed                   worker   42h   v1.18.3+b74c5ed
 ~~~
 
 And let's check where our VM went:
 
 ~~~bash
 $ oc get vmi centos8-server-nfs
-NAME                 AGE   PHASE     IP                NODENAME
-centos8-server-nfs   20h   Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+NAME                 AGE   PHASE     IP                 NODENAME
+centos8-server-nfs   88m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
-Back to **ocp-9pv98-worker-pj2dn**!
+Success!
 
-Note that the VM has been automatically live migrated back to the other worker, as per the `EvictionStrategy`. 
+Note that the VM has been automatically live migrated to the other worker, as per the `EvictionStrategy`. 
 
 We can remove the maintenance flag by simply deleting the `NodeMaintenance` object:
 
@@ -240,11 +292,19 @@ nodemaintenance.kubevirt.io "worker-maintenance" deleted
 And the node will be `Ready` again:
 
 ~~~bash
-$ oc get nodes/ocp-9pv98-worker-g78bj
-NAME                     STATUS   ROLES    AGE   VERSION
-ocp-9pv98-worker-g78bj   Ready    worker   42h   v1.18.3+b74c5ed
+$ oc get nodes/cluster-august-lhrd5-worker-mh52l
+NAME                                STATUS   ROLES    AGE     VERSION
+cluster-august-lhrd5-worker-mh52l   Ready    worker   5h41m   v1.18.3+b74c5ed
+
+$ oc get nodes
+NAME                                STATUS   ROLES    AGE     VERSION
+cluster-august-lhrd5-master-0       Ready    master   6h      v1.18.3+b74c5ed
+cluster-august-lhrd5-master-1       Ready    master   6h      v1.18.3+b74c5ed
+cluster-august-lhrd5-master-2       Ready    master   6h      v1.18.3+b74c5ed
+cluster-august-lhrd5-worker-6w624   Ready    worker   5h41m   v1.18.3+b74c5ed
+cluster-august-lhrd5-worker-mh52l   Ready    worker   5h41m   v1.18.3+b74c5ed
 ~~~
 
 Note the removal of the `SchedulingDisabled` annotation on the '`STATUS` column. 
 
-Be advised that just because this node has become active again it doesn't mean that the virtual machine will 'fail back' and Live Migrate back to it.
+> **NOTE**: Just because this node has become active again doesn't mean that the virtual machine will 'fail back' and Live Migrate back to it.
