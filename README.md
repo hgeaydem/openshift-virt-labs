@@ -22,6 +22,7 @@ The lab guide runs you through the following tasks -
 * **Setting up Storage for OpenShift Virtualization**
 * **Setting up Networking for OpenShift Virtualization**
 * **Deploying Test Workloads**
+* **Cloning Workloads**
 * **Performing Live Migrations and Node Maintenance**
 * **Utilising pod networking for VM's**
 * **Using the OpenShift Web Console extensions for OpenShift Virtualization**
