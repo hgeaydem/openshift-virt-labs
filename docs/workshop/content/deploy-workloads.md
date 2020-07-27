@@ -320,7 +320,7 @@ And as good habit ...
 
 ~~~bash
 $ oc project default
-Already on project "default" on server "https://api.cluster-august.students.osp.opentlc.com:6443".
+Already on project "default" on server "https://172.30.0.1:443".
 ~~~
 
 Now that we have the NFS instance running, let's do the same for the **hostpath** setup we created. This is essentially the same as our NFS instance, except we reference the `rhel8-hostpath` PVC:
@@ -539,5 +539,5 @@ Removing debug pod ...
 $
 
 $ oc project default
-Already on project "default" on server "https://api.cluster-august.students.osp.opentlc.com:6443".
+Already on project "default" on server "https://172.30.0.1:443".
 ~~~

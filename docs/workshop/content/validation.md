@@ -64,7 +64,7 @@ OK, so this is likely something that you've all done before, and it's hardly ver
 
 ~~~bash
 $ oc project default
-Now using project "default" on server "https://api.cluster-august.students.osp.opentlc.com:6443".
+Now using project "default" on server "https://172.30.0.1:443".
 
 oc new-app \
 	nodeshift/centos7-s2i-nodejs:12.x~https://github.com/vrutkovs/DuckHunt-JS
