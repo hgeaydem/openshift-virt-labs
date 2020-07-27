@@ -2,7 +2,7 @@ OpenShift virtualisation is available as both upstream (**KubeVirt**) and downst
 
 The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. Note, it's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.
 
-From within the lab guide window you'll see a button in the middle at the top that allows you to switch between the terminal and console options. Select the console and you should see the OpenShift dashboard:
+Use the **Console** portion of the lab for the next steps. As a reminder, the access is via the buttons at the top. Any CLI commands should be executed by clicking back to the **Terminal** via the same buttons.
 
 <img  border="1" src="img/console-button.png"/>
 
@@ -42,14 +42,14 @@ You can follow the install by moving to the **Workloads** -> **Pods** menu on th
 
 <img  border="1" src="img/install-kubevirt-hco-pending.png"/>
 
-You can also return to the 'terminal' tab in your hosted lab guide and watch via the CLI:
+You can also watch this via the CLI:
 
 ~~~bash
 $ watch -n2 'oc get pods -n openshift-cnv'
 (...)
 ~~~
 
-> **NOTE**: It may take a few minutes for the pods to start up properly. Press **Ctrl+C** to exit the watch command.
+> **NOTE**: It may take a few minutes for the pods to start up. Press **Ctrl+C** to exit the watch command.
 
 During this process you will see a lot of pods create and terminate, which will look something like the following depending on when you view it; it's always changing:
 
