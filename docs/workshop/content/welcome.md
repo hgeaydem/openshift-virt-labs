@@ -22,7 +22,7 @@ This is the self-hosted lab guide that will run you through the following:
 
 ## Lab Setup
 
-The entire lab should be run from within the hosted lab environment you are in now. The lab environment provides both a CLI with the tools you need (oc, virtctl) as well as access to the OpenShift console as a privileged user. Switching between the console and the CLI enviornment is easy. FAt the top middle of the lab guide you'll find a link to switch between the "**Terminal**" and the "**Console**". 
+The entire lab should be run from within the hosted lab environment you are in now. The lab environment provides both a CLI with the tools you need (oc, virtctl) as well as access to the OpenShift console as a privileged user. Switching between the console and the CLI enviornment is easy. At the top middle of the lab guide you'll find a link to switch between the "**Terminal**" and the "**Console**". 
 
 <img src="img/console-button.png"/>
 
