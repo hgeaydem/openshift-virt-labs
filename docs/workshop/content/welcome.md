@@ -35,7 +35,7 @@ Within the lab you can cut and paste commands directly from the instructions; bu
 ## Environment
 
 The lab environment consists of three (3) OpenShift masters and two (2) OpenShift workers. 
-The installation consists of two networks, one for internal OpenShift communication, and another to represent a "public" network unrelated to OpenShift. We use this public network in the labs but it should be noted that the network uses an unroutable range and is just an example. The point is that it is external to OpenShift and could be any extra network.
+The installation consists of two networks, one for internal OpenShift communication, and another to represent a "public" network unrelated to OpenShift. This second network is connected to all OpenShift workers. We use this public network in the labs but it should be noted that the network uses an unroutable range and is just an example. The point is that it is external to OpenShift and could be any extra network.
 
 In additon to the OpenShift deployment we are running a bastion host with a few extra services:
 
@@ -45,7 +45,7 @@ In additon to the OpenShift deployment we are running a bastion host with a few 
 Conceptually, the environment looks like this:
 
 <center>
-    <img src="img/lab-environment-rhpds-working.png"/>
+    <img src="img/labarch.png"/>
 </center>
 
 ## Accessing the bastion host
