@@ -105,8 +105,8 @@ Let's begin!
 
 GUID
 
-{USER_GUID}
+${USER_GUID}
 
-{GUID}
+${GUID}
 
-{USERNAME}
+${USERNAME}

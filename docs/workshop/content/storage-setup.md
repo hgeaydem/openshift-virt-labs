@@ -347,9 +347,22 @@ cluster-august-lhrd5-worker-6w624   Ready                      worker   134m   v
 cluster-august-lhrd5-worker-mh52l   Ready,SchedulingDisabled   worker   134m   v1.18.3+b74c5ed
 ~~~
 
-> **NOTE**: This will take a few minutes (allow at least 10 mins in an RHPDS-based lab) to reflect on the cluster, and causes the worker nodes to reboot.
+> **NOTE**: This will take a few minutes (allow at least 10 mins in an RHPDS-based lab) to reflect on the cluster, and causes the worker nodes to reboot. You'll witness a disruption on the lab guide functionality where you will see the consoles hang and/or display a "Closed" image. In some cases we have needed to refresh the entire browser.
 
-Now wait for the following command to return `True` as it indicates when the `MachineConfigPool`'s worker has been updated with the latest `MachineConfig` requested (again, this will take at least 10 minutes in RHPDS): 
+<img src="img/disconnected-terminal.png" width="80%"/>
+
+It should automatically reconnect but if it doesn't, you can try reloading the terminal by clicking the three bars in the top right hand corner:
+
+<img src="img/reload-terminal.png" width="80%"/>
+
+When you're able to issue commands again, make sure you're in the correct namespace again:
+
+~~~bash
+$ oc project default
+Now using project "default" on server "https://172.30.0.1:443".
+~~~
+
+Before proceeding you need to **wait for the following command to return `True`** as it indicates when the `MachineConfigPool`'s worker has been updated with the latest `MachineConfig` requested (again, this will take at least 10 minutes in RHPDS): 
 
 ~~~bash
 $ oc get machineconfigpool worker -o=jsonpath="{.status.conditions[?(@.type=='Updated')].status}{\"\n\"}"
