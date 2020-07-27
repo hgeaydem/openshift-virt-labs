@@ -39,23 +39,24 @@ In additon to the OpenShift deployment we are running a bastion host with a few 
 * A squid proxy server to allow a web browser on your local system access to the "publci" network mentioned above. Instructions on how to connect your browser to this are below.
 * An NFS server to provide basic storage to our OpenShift environment. It is full configured and available to the lab.
 
-Cinceptually, the environment looks like this:
+Conceptually, the environment looks like this:
 
-**TBA**
+<center>
+    <img src="img/lab-environment-rhpds-working.png"/>
+</center>
 
 ## Accessing the bastion host
-
-> **NOTE**: These steps are repeated from the welcome page so please skip if you've already completed them.
 
 As mentioned, this host serves a few purposes and **it is required to connect to it before starting the lab**.
 
 On the bastion is a squid proxy server. This server allows your local browser to have access to the "public" network we utilise in the lab. As this network is actually a non-routable IP range within RHPDS, you'll need the squid to access it. 
 
-If you are reading this lab guide through a broswer NOT connected in this way, you should follow the following steps to do so. The squid will allow your browser to connect to the internet so no functionality is lost (**but remember to change the settings back when done**!).
+The following steps can be performed on the browser you are using now, or an alternative one. The squid will allow you to also connect to the internet, so using your current browser won't compromise your connectivity - **just remember to change the settings back when you are done with the lab!**
 
 > **NOTE**: All connections to the bastion are made using the "`lab-user`" with the password supplied in the RHPDS email.
 
-Step 1: Find the bastion's private IP
+### Step 1 
+Find the bastion's private IP
 
 ~~~bash
 $ ssh lab-user@bastion.august.students.osp.opentlc.com "ip a s eth0 |grep -Po 'inet \K[\d.]+'"
@@ -63,7 +64,8 @@ lab-user@bastion.august.students.osp.opentlc.com's password:
 192.168.47.16
 ~~~
 
-Step 2: Initiate an SSH forward from port 8080 on your local machine to port 3128 (squid) on the basition's private IP (in this example, 192.168.47.16).
+### Step 2
+Initiate an SSH forward from port 8080 on your local machine to port 3128 (squid) on the basition's private IP (in this example, 192.168.47.16).
 
 ~~~bash
 $ ssh lab-user@bastion.august.students.osp.opentlc.com -L 8080:192.168.47.16:3128
@@ -78,16 +80,19 @@ Last login: Sun Jul 26 19:31:07 2020 from 106.69.159.19
 [lab-user@bastion ~]$
 ~~~
 
-> **NOTE**: You will also use the login for some commands in the lab. And while you can run all OpenShift commands from the lab CLI you also have access to the same environment from the bastion. Try running `oc get nodes` and you will see the same thing as you do in the lab environment's CLI window!
+> **NOTE**: You will also use the login for some non-OpenShift commands in the lab. However, the bastion has the openshift client, `oc`, configured and useable. Try `oc get nodes` when you are there!
 
-Step 3: Configure your browser to utiluse the port forward. Set your browser (we've tested Firefox and had the most success with this - your mileage may vary with other browsers) to use **localhost:8080** for all protocols, and make sure you enable ***DNS over SOCKSv5*** - this avoids any challenges with local DNS:
+### Step 3
+Configure your browser to utiluse the port forward. Set your browser (we've tested Firefox and had the most success with this - your mileage may vary with other browsers) to use **localhost:8080** for all protocols, and make sure you enable ***DNS over SOCKSv5*** - this avoids any challenges with local DNS:
 
 <center>
 <img src="img/firefox-proxy.png" width="80%"/>
 </center>
 
-Once you've done that, reconnect to the lab guide URL in the proxied browser and continue.
+As mentioned this connection now allows you to access the. lab's "public" network on 192.168.47.0/24 as well as the lab guide and the internet beyond.
 
+
+# Feedback Please!
 
 We very much welcome feedback on the content, what's missing, what would be good to have, etc. Please feel free to submit PR's or raise [GitHub](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds) issues! We are always excited to continue to evolve this lab to fit your requirements. So please do let us know what we can add to make it work even better for your needs.
 
@@ -95,4 +100,10 @@ Ok, ready?
 
 Let's begin!
 
-This is a {{ GUID }} guide test.
+GUID
+
+{USER_GUID}
+
+{GUID}
+
+{USERNAME}
