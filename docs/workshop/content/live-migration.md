@@ -4,7 +4,7 @@ Live migration is an administrative function in OpenShift Virtualization. While 
 
 In our lab you should now have only one VM running. You can check that, and view the underlying host it is on, by looking at the virtual machine's instance with the `oc get vmi` command.
 
-> **NOTE**: In OpenShift Virtualization, the "Virtual Machine" object can be thought of as the virtual machine "source" that virtual machine instances are created from. A "Virtual Machine Instance" is the actual running instance of the virtual machine. The instance is the object you work with that contains IP, networking, and workloads, etc. 
+> **NOTE**: In OpenShift Virtualization, the "Virtual Machine" object can be thought of as the virtual machine "source" that virtual machine instances are created from. A "Virtual Machine Instance" is the actual running instance of the virtual machine. The instance is the object you work with that contains the IP, networking, and workloads, etc. 
 
 ~~~bash
 $ oc get vmi

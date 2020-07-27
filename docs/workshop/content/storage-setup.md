@@ -1,6 +1,6 @@
 Now that we've got the OpenShift Virtualization operator deployed, let's configure some storage for our VMs to use. 
 
-First, switch back to the "**Terminal**" view in your lab environment.
+>**NOTE**: Switch back to the "**Terminal**" view in your lab environment.
 
 We're going to setup two different types of storage in this section, firstly standard NFS shared storage, and secondly `hostpath` storage which uses the hypervisor's local disks, this is somewhat akin to ephemeral storage provided by OpenStack.
 
@@ -43,29 +43,31 @@ standard (default)   kubernetes.io/cinder           Delete          WaitForFirst
 
 Next we will create some NFS-backed persistent volumes (PVs) for our VM persistent volume claims (PV) to utilise. However, before we do that, let's review the NFS setup we are going to use.
 
-We have deployed a simple NFS server to the RHPDS bastion host. This is the same machine you connected to with your rhpds username to port forward for the squid. The NFS server is sharing four directories on that host, as follows:
+We have deployed a simple NFS server to the RHPDS bastion host. This is the same machine you connected to as lab-user to port forward for the squid. The NFS server is sharing four directories on that host. You can view the setup directly on that bastion (not from within the lab environment's CLI):
 
 ~~~bash
-[root@bastion ~]# ls -l /mnt/nfs/
+[lab-user@bastion ~]$ ls -l /mnt/nfs/
 total 0
-drwxrwxrwx. 2 root root 6 Jul 19 23:30 four
-drwxrwxrwx. 2 root root 6 Jul 19 23:30 one
-drwxrwxrwx. 2 root root 6 Jul 19 23:30 three
-drwxrwxrwx. 2 root root 6 Jul 19 23:30 two
+drwxrwxrwx. 2 root root  6 Jul 23 21:32 four
+drwxrwxrwx. 2 root root 22 Jul 24 01:23 one
+drwxrwxrwx. 2 root root  6 Jul 23 21:32 three
+drwxrwxrwx. 2 root root 22 Jul 24 02:12 two
 ~~~
 
 We will use each one for a different PV which allows us to run four VMs at a time with NFS-backed storage.
 
-When creating the PV's we need to tell OpenShift what IP the NFS server is on. To determine the IP for your server. On the bastion simply find the interface with the 192 address and use that (in the example below, and in this lab guide, we will use `192.168.47.16`:
+When creating the PV's we need to tell OpenShift what IP the NFS server is on. This is the same IP the squid is running on in your forward command.
+
+**Be sure you know and use the address from your setup for the lab steps below. DO NOT CUT AND PASTE THEM WITHOUT CHANGING THE IP TO THE VALUE FOR YOUR DEPLOYMENT.**
 
 ~~~bash
-[cloud-user@bastion ~]$ ip a | grep 192
+[lab-user@bastion ~]$ ip a | grep 192
     inet 192.168.47.16/24 brd 192.168.47.255 scope global dynamic noprefixroute eth0
 ~~~
 
-This network is plumbed into bastion and all the workers. In the example above, you'd use 192.168.47.16 in the PV claims below. Your subnet may differ slightly.
+As explained, this network is plumbed into the bastion and all the workers as an example of a "public" or "external" (ie not controlled by OpenShift) network. In the example above, you'd use **192.168.47.16** in the PV claims below. 
 
-Ok, with all that clear, let's create our PVs (**remembering to substitute the correct IP and paths for each claim**):
+Ok, with all that clear, let's create our PVs (**LAST WARNING! Remember to substitute the correct IP and paths for each claim**):
 
 Create nfs-pv1:
 
@@ -83,7 +85,7 @@ spec:
     storage: 10Gi
   nfs:
     path: /mnt/nfs/one
-    server: 192.168.47.16
+    server: 192.168.47.16 <------ CHANGEME
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -108,7 +110,7 @@ spec:
     storage: 10Gi
   nfs:
     path: /mnt/nfs/two
-    server: 192.168.47.16
+    server: 192.168.47.16 <------ CHANGEME
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs
   volumeMode: Filesystem
@@ -264,7 +266,7 @@ nfs-pv2                                    10Gi       RWO,RWX        Delete     
 pvc-11b35321-1aa4-4723-a436-66591f81417c   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                132m
 ~~~
 
-Recall that when we setup the `PV` resources we specified the location and path of the NFS server that we wanted to utilise:
+Recall that when we setup the `PV` resources we specified the location and path of the NFS server on that bastion that we wanted to utilise:
 
 ~~~basic
   nfs:
@@ -277,17 +279,17 @@ If we have a look on our NFS server (ie the RHPDS bastion host) we can make sure
 > **NOTE**: In your environment, if your image was 'pv1' rather than 'pv2', adjust the commands to match your setup (check both /mnt/nfs/one and /mnt/nfs/two). 
 
 ~~~bash
-[cloud-user@bastion ~]$ ls -l /mnt/nfs/one/
+[lab-user@bastion ~]$ ls -l /mnt/nfs/one/
 total 387092
 -rw-r--r--. 1 root root 10737418240 Jul 23 23:32 disk.img
 
-[cloud-user@bastion ~]$ sudo qemu-img info /mnt/nfs/one/disk.img
+[lab-user@bastion ~]$ sudo qemu-img info /mnt/nfs/one/disk.img
 image: /mnt/nfs/one/disk.img
 file format: raw
 virtual size: 10G (10737418240 bytes)
 disk size: 427M
 
-[cloud-user@bastion ~]$ sudo file /mnt/nfs/one/disk.img
+[lab-user@bastion ~]$ sudo file /mnt/nfs/one/disk.img
 /mnt/nfs/one/disk.img: DOS/MBR boot sector
 ~~~
 
@@ -475,7 +477,7 @@ pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb   29Gi       RWO            Delete     
 Let's look more closely at the PV's. Describe the new hostpath PV (noting that you'll need to adapt for the `uuid` in your environment):
 
 ~~~bash
-$ $ oc describe pv/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb
+$ oc describe pv/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb
 Name:              pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb
 Labels:            <none>
 Annotations:       hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner

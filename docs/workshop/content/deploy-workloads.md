@@ -19,6 +19,8 @@ To enable Live Migration the PVC must be of the type "RWX". RWX stands for "Read
 
 Finally we are using the images built in cloud-init functionality to set the default user's password to "redhat". This means we can login directly to the instance as username centos, password redhat.
 
+> **NOTE**: There's a lot of YAML ahead. You can cut and paste, but spend some time reviewing the config and see if it makes sense _before_ you run it.
+
 Ok, let's create the VM:
 
 ~~~bash
@@ -255,7 +257,7 @@ Exit the shell before proceeding:
 [root@rhel8-server-nfs /]# exit
 exit
 
-[cloud-user@bastion ~]$
+$
 ~~~
 
 Now, how is this plugged on the underlying host? 
@@ -311,7 +313,7 @@ exit
 
 Removing debug pod ...
 
-[cloud-user@bastion ~]$
+$
 ~~~
 
 And as good habit ...
@@ -534,7 +536,7 @@ sh4.2# exit
 exit
 
 Removing debug pod ...
-[cloud-user@bastion ~]$
+$
 
 $ oc project default
 Already on project "default" on server "https://api.cluster-august.students.osp.opentlc.com:6443".

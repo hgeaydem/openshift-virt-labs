@@ -110,7 +110,7 @@ $ oc get vmi/centos7-masq
 Error from server (NotFound): virtualmachineinstances.kubevirt.io "centos7-masq" not found
 ~~~
 
-Oops?! What happened? Where is our instance? WHat did we break?
+Oops?! What happened? Where is our instance? What did we break?
 
 As you'll recall the instance is just the running version of the VM, so let's see what's up with our VM:
 
@@ -368,7 +368,7 @@ Be sure to logout of the VM before proceeding:
 centos@centos7-clone-nfs ~]$ logout
 Connection to luster-august-lhrd5-worker-6w624 closed.
 
-[cloud-user@bastion ~]$
+$
 
 ~~~
 
@@ -444,6 +444,6 @@ sh-4.2# exit
 exit
 
 Removing debug pod ...
-[cloud-user@bastion ~]$
+$
 ~~~
 

@@ -144,6 +144,8 @@ nodenetworkconfigurationpolicy.nmstate.io/br1-ens4-policy-workers created
 
 If, like in our example here, we have two different nic names (ens6 on cluster-august-lhrd5-worker-6w624 and ens7 on cluster-august-lhrd5-worker-mh52l) you'll need two policies, one for each configuration. First, we need to label the nodes, so we an easily reference them:
 
+> **NOTE**: If your deployment has the same NIC naming, you don't need to do the next few steps. If this is the case skip to [the next step](#review-the-policy).
+
 ~~~bash
 $ oc label node cluster-august-lhrd5-worker-6w624 nic2=ens6
 node/cluster-august-lhrd5-worker-6w624 labeled
@@ -219,6 +221,8 @@ spec:
             - name: ens7
 EOF
 ~~~
+
+###Review the policy
 
 Then enquire as to whether it was successfully applied:
 

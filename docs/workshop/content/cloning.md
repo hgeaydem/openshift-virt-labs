@@ -260,7 +260,7 @@ Remember to logout of your running VM:
 [centos@centos7-clone-nfs ~]$ exit
 logout
 Connection to 192.168.47.22 closed.
-[cloud-user@bastion ~]$
+$
 ~~~
 
 We now are going to shutdown the VM so we can clone it without risking filesystem corruption. To do that it's time to introduce a new tool, `virtctl`.
