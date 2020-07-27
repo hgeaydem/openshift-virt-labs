@@ -86,7 +86,7 @@ Last login: Sun Jul 26 19:31:07 2020 from 106.69.159.19
 > **NOTE**: You will also use the login for some non-OpenShift commands in the lab. However, the bastion has the openshift client, `oc`, configured and useable. Try `oc get nodes` when you are there!
 
 ### Step 3
-Configure your browser to utiluse the port forward. Set your browser (we've tested Firefox and had the most success with this - your mileage may vary with other browsers) to use **localhost:8080** for all protocols, and make sure you enable ***DNS over SOCKSv5*** - this avoids any challenges with local DNS:
+Configure your browser to utilise the port forward. Set your browser (we've tested Firefox and had the most success with this - your mileage may vary with other browsers) to use **localhost:8080** for all protocols, and make sure you enable ***DNS over SOCKSv5*** - this avoids any challenges with local DNS:
 
 <center>
 <img src="img/firefox-proxy.png" width="80%"/>
