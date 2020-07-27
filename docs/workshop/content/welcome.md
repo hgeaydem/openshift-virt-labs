@@ -1,6 +1,3 @@
-:USER_GUID: %GUID%
-:USERNAME: %user%
-
 ## Welcome!
 
 Welcome to the OpenShift Virtualization self-paced lab on Red Hat Product Demo System (RHPDS). We've put this together to give you an overview and technical deep dive into how OpenShift Virtualization works, and how it will bring virtualization capabilities to OpenShift over the next few months.
@@ -98,15 +95,3 @@ As mentioned this connection now allows you to access the. lab's "public" networ
 # Feedback Please!
 
 We very much welcome feedback on the content, what's missing, what would be good to have, etc. Please feel free to submit PR's or raise [GitHub](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds) issues! We are always excited to continue to evolve this lab to fit your requirements. So please do let us know what we can add to make it work even better for your needs.
-
-Ok, ready? 
-
-Let's begin!
-
-GUID
-
-${USER_GUID}
-
-${GUID}
-
-${USERNAME}
