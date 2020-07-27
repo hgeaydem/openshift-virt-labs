@@ -41,7 +41,7 @@ As mentioned above, the entire setup is provided contained within infrastructure
 The deployment is visualised as follows:
 
 <center>
-    <img src="docs/workshop/content/img/RHPDS-CNV-Lab Diagram.png"/>
+    <img src="docs/workshop/content/img/labarch.png"/>
 </center>
 
 Within this environment you can access all aspects of the lab through the deployed lab guide. You receive access to that guide with the RHPDS welcome email.
