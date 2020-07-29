@@ -2,7 +2,7 @@
 
 **Authors**: [Rhys Oxenham](mailto:roxenham@redhat.com) and [August Simonelli](mailto:asimonel@redhat.com)
 
-**PLEASE NOTE THIS LAB IS UNDER DEVELOPEMENT AND IS NOT YET AVAILABLE FOR USE IN RHPDS.**
+**PLEASE NOTE THIS LAB IS IS NOT YET AVAILABLE FOR USE IN RHPDS.**
 
 # Welcome!
 
@@ -10,7 +10,7 @@ Welcome to our hands-on OpenShift Virtualization lab for RHPDS.
 
 You first need to deploy your lab through RHPDS. Once you do that you will receive full access details and instructions for your specific environment.
 
-Go to ... TBA.
+To launch the lab in RHPDS ... TBA.
 
 > **NOTE**: We also have a branch that can be used on your own hardware which includes deployment scripts for a completely self-contained training. This is available from the [main branch of this lab's repo](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/master).
 
@@ -26,14 +26,14 @@ The lab uses official Red Hat downstream components, where **OpenShift Virtualiz
 
 The lab runs you through the following OpenShift Virtualization tasks:
 
-* **Validating the OpenShift deployment**
-* **Deploying OpenShift Virtualization (KubeVirt)**
-* **Setting up Storage for OpenShift Virtualization**
-* **Setting up Networking for OpenShift Virtualization**
-* **Deploying Test Workloads**
-* **Cloning Workloads**
-* **Performing Live Migrations and Node Maintenance**
-* **Utilising pod networking for VM's**
+* **[Validating the OpenShift deployment](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/validation.md)**
+* **[Deploying OpenShift Virtualization](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/deploy-cnv.md)**
+* **[Setting up Storage for OpenShift Virtualization](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/storage-setup.md)**
+* **[Setting up Networking for OpenShift Virtualization](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/network-setup.md)**
+* **[Deploying Test Workloads](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/deploy-workloads.md)**
+* **[Cloning Workloads](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/cloning.md)**
+* **[Performing Live Migrations and Node Maintenance](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/live-migration.md)**
+* **[Utilising pod networking for VM's](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/masquerade.md)**
 * **Using the OpenShift Web Console extensions for OpenShift Virtualization** (coming soon!)
 
 As mentioned above, the entire setup is provided contained within infrastructure provided by RHPDS. This means you can easily deploy the lab, follow some simple setuo instructions, and you will have your own OpenShift cluster to work on with full admin access. 
