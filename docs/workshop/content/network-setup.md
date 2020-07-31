@@ -92,26 +92,28 @@ In there you'll spot the interface that we'd like to use to create a bridge, `en
 
 > **NOTE**: The first interface `ens3` via `br0` is being used for inter-OpenShift communication, including all of the pod networking via OpenShift SDN.
 
-Now, one thing to also check if all your nodes have the *same* interfaces. Let's check ours:
+Now, one thing to also check if all your nodes have the *same* interface naming. Let's check ours:
 
 ~~~bash
 $ oc get nns/cluster-august-lhrd5-worker-6w624 -o yaml | grep ens | grep name
       name: ens3
       name: ens6
 $ oc get nns/cluster-august-lhrd5-worker-mh52l -o yaml | grep ens | grep name
-      name: ens3
-      name: ens7
+      name: ens3 <--- On the other node the first interface is also ens3 which is good.
+      name: ens7 <--- On the other node the second interface is ens6! This means we have a difference.
 ~~~
 
-Uh Oh! This shouldn't happen, but if it does you'll need to adjust some of your next steps. 
+Uh Oh! This shouldn't happen, but if it does you'll need to adjust some of your next steps to apply different policies to each node. 
 
 Now we can apply a new `NodeNetworkConfigurationPolicy` for our worker nodes to setup a desired state for `br1` via the secondary nic. 
 
-If your workers have all the same nic configs all the same then you can specify a nodeSelector like this: `node-role.kubernetes.io/worker: ""` This aopplies the config to all worker nodes.
+### Same NIC naming across nodes
 
-If you found you have different naming, as we do above, you'll need to apply different policies, one for each node.
+If your workers have all the same nic config naming then you can specify a nodeSelector like this: `node-role.kubernetes.io/worker: ""` This applies the **same** config to all worker nodes.
 
-First, this example covers all workers with the same nic. In this example it is `ens4` but adjust it to fit yours:
+REMINDER: If you found you have different naming, as we do in the example above, you'll need to apply different policies, one for each node. If this is the case then skip to [this section now](#different-nic-names) now. Otherwise continue with the example below:
+
+**Again, this example covers all workers with the same nic.** In this example it is `ens4` but adjust it to fit yours:
 
 ~~~bash
 $ cat << EOF | oc apply -f -
@@ -142,9 +144,13 @@ EOF
 nodenetworkconfigurationpolicy.nmstate.io/br1-ens4-policy-workers created
 ~~~
 
+Now proceed to [the next step](#review-the-policy) to review the policy you just set.
+
+###Different NIC names
+
 If, like in our example here, we have two different nic names (ens6 on cluster-august-lhrd5-worker-6w624 and ens7 on cluster-august-lhrd5-worker-mh52l) you'll need two policies, one for each configuration. First, we need to label the nodes, so we an easily reference them:
 
-> **NOTE**: If your deployment has the same NIC naming, you don't need to do the next few steps. If this is the case skip to [the next step](#review-the-policy).
+> **NOTE**: Reminder, if your deployment has the same NIC naming, you don't need to do the next few steps. If this is the case skip to [the next step](#review-the-policy).
 
 ~~~bash
 $ oc label node cluster-august-lhrd5-worker-6w624 nic2=ens6
@@ -292,7 +298,7 @@ status:
 
 Now that the "physical" networking is configured on the underlying worker nodes, we need to then define a `NetworkAttachmentDefinition` so that when we want to use this bridge, OpenShift and OpenShift virtualisation know how to attach into it. This associates the bridge we just defined with a logical name, known here as '**tuning-bridge-fixed**':
 
-> **NOTE**: Since we named the bridge `br1` on both nodes, we don't need to create multiple versions of this `NetworkAttachmentDefinition`.
+> **NOTE**: Since we named the bridge `br1` on both nodes in both our NodeNetworkConfigurationPolicy's we don't need to create multiple versions of this `NetworkAttachmentDefinition`.
 
 ~~~bash
 $ cat << EOF | oc apply -f -
