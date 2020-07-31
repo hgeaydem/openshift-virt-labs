@@ -121,12 +121,12 @@ metadata:
  labels:
    app: centos7-clone-nfs
    flavor.template.kubevirt.io/small: 'true'
-   os.template.kubevirt.io/centos7.0: 'true'
-   vm.kubevirt.io/template: centos7-server-small-v0.7.0
-   vm.kubevirt.io/template.namespace: openshift
-   vm.kubevirt.io/template.revision: '1'
-   vm.kubevirt.io/template.version: v0.9.1
-   workload.template.kubevirt.io/server: 'true'
+    os.template.kubevirt.io/rhel7.9: 'true'
+    vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+    vm.kubevirt.io/template.namespace: openshift
+    vm.kubevirt.io/template.revision: '1'
+    vm.kubevirt.io/template.version: v0.11.2
+    workload.template.kubevirt.io/server: 'true'
 spec:
  running: true
  template:
@@ -134,11 +134,11 @@ spec:
      creationTimestamp: null
      labels:
        flavor.template.kubevirt.io/small: 'true'
-       kubevirt.io/domain: centos7-clone-nfs
-       kubevirt.io/size: small
-       os.template.kubevirt.io/centos7.0: 'true'
-       vm.kubevirt.io/name: centos7-clone-nfs
-       workload.template.kubevirt.io/server: 'true'
+    os.template.kubevirt.io/rhel7.9: 'true'
+    vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+    vm.kubevirt.io/template.namespace: openshift
+    vm.kubevirt.io/template.revision: '1'
+    vm.kubevirt.io/template.version: v0.11.2
    spec:
      domain:
        cpu:
@@ -161,7 +161,7 @@ spec:
              name:  tuning-bridge-fixed
          rng: {}
        machine:
-         type: pc-q35-rhel8.1.0
+         type: pc-q35-rhel8.2.0
        resources:
          requests:
            memory: 2Gi
@@ -375,12 +375,12 @@ metadata:
  labels:
    app: centos7-clone-dv
    flavor.template.kubevirt.io/small: 'true'
-   os.template.kubevirt.io/centos7.0: 'true'
-   vm.kubevirt.io/template: centos7-server-small-v0.7.0
-   vm.kubevirt.io/template.namespace: openshift
-   vm.kubevirt.io/template.revision: '1'
-   vm.kubevirt.io/template.version: v0.9.1
-   workload.template.kubevirt.io/server: 'true'
+    os.template.kubevirt.io/rhel7.9: 'true'
+    vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+    vm.kubevirt.io/template.namespace: openshift
+    vm.kubevirt.io/template.revision: '1'
+    vm.kubevirt.io/template.version: v0.11.2
+    workload.template.kubevirt.io/server: 'true'
 spec:
  running: true
  template:
@@ -412,7 +412,7 @@ spec:
              name:  tuning-bridge-fixed
          rng: {}
        machine:
-         type: pc-q35-rhel8.1.0
+         type: pc-q35-rhel8.2.0
        resources:
          requests:
            memory: 2Gi

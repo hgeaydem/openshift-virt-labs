@@ -37,11 +37,11 @@ metadata:
   labels:
     app: centos8-nfs
     flavor.template.kubevirt.io/small: 'true'
-    os.template.kubevirt.io/centos8.0: 'true'
-    vm.kubevirt.io/template: centos8-server-small-v0.7.0
+    os.template.kubevirt.io/rhel8.2: 'true'
+    vm.kubevirt.io/template: rhel8-server-small-v0.10.0
     vm.kubevirt.io/template.namespace: openshift
     vm.kubevirt.io/template.revision: '1'
-    vm.kubevirt.io/template.version: v0.9.1
+    vm.kubevirt.io/template.version: v0.11.2
     workload.template.kubevirt.io/server: 'true'
 spec:
   running: true
@@ -50,10 +50,11 @@ spec:
       creationTimestamp: null
       labels:
         flavor.template.kubevirt.io/small: 'true'
-        kubevirt.io/domain: centos8-server-nfs
-        kubevirt.io/size: small
-        os.template.kubevirt.io/centos8.0: 'true'
-        vm.kubevirt.io/name: centos8-server-nfs
+        os.template.kubevirt.io/rhel8.2: 'true'
+        vm.kubevirt.io/template: rhel8-server-small-v0.10.0
+        vm.kubevirt.io/template.namespace: openshift
+        vm.kubevirt.io/template.revision: '1'
+        vm.kubevirt.io/template.version: v0.11.2
         workload.template.kubevirt.io/server: 'true'
     spec:
       domain:
@@ -77,7 +78,7 @@ spec:
               name:  tuning-bridge-fixed
           rng: {}
         machine:
-          type: pc-q35-rhel8.1.0
+          type: pc-q35-rhel8.2.0
         resources:
           requests:
             memory: 2Gi
@@ -134,7 +135,7 @@ $ oc get pods
 NAME                                     READY   STATUS    RESTARTS   AGE
 virt-launcher-centos8-server-nfs-5d8zd   1/1     Running   0          15s
 
-$ $ oc describe pod/virt-launcher-centos8-server-nfs-5d8zd
+$ oc describe pod/virt-launcher-centos8-server-nfs-5d8zd
 Name:         virt-launcher-centos8-server-nfs-5d8zd
 Namespace:    default
 Priority:     0
@@ -143,10 +144,11 @@ Start Time:   Fri, 24 Jul 2020 01:29:54 -0400
 Labels:       flavor.template.kubevirt.io/small=true
               kubevirt.io=virt-launcher
               kubevirt.io/created-by=77a2be98-6efa-4ce8-baac-796fc9ef31ae
-              kubevirt.io/domain=centos8-server-nfs
-              kubevirt.io/size=small
-              os.template.kubevirt.io/centos8.0=true
-              vm.kubevirt.io/name=centos8-server-nfs
+              os.template.kubevirt.io/rhel8.2=true
+              vm.kubevirt.io/template=rhel8-server-small-v0.10.0
+              vm.kubevirt.io/template.namespace=openshift
+              vm.kubevirt.io/template.revision=1
+              vm.kubevirt.io/template.version=v0.11.2
               workload.template.kubevirt.io/server=true
 Annotations:  k8s.v1.cni.cncf.io/network-status:
                 [{
@@ -339,11 +341,11 @@ metadata:
   labels:
     app: centos8-server-hostpath
     flavor.template.kubevirt.io/small: 'true'
-    os.template.kubevirt.io/centos8.0: 'true'
-    vm.kubevirt.io/template: centos8-server-small-v0.7.0
+    os.template.kubevirt.io/rhel8.2: 'true'
+    vm.kubevirt.io/template: rhel8-server-small-v0.10.0
     vm.kubevirt.io/template.namespace: openshift
     vm.kubevirt.io/template.revision: '1'
-    vm.kubevirt.io/template.version: v0.9.1
+    vm.kubevirt.io/template.version: v0.11.2
     workload.template.kubevirt.io/server: 'true'
 spec:
   running: true
@@ -352,10 +354,11 @@ spec:
       creationTimestamp: null
       labels:
         flavor.template.kubevirt.io/small: 'true'
-        kubevirt.io/domain: centos8-server-hostpath
-        kubevirt.io/size: small
-        os.template.kubevirt.io/centos8.0: 'true'
-        vm.kubevirt.io/name: centos8-server-hostpath
+        os.template.kubevirt.io/rhel8.2: 'true'
+        vm.kubevirt.io/template: rhel8-server-small-v0.10.0
+        vm.kubevirt.io/template.namespace: openshift
+        vm.kubevirt.io/template.revision: '1'
+        vm.kubevirt.io/template.version: v0.11.2
         workload.template.kubevirt.io/server: 'true'
     spec:
       domain:
@@ -379,7 +382,7 @@ spec:
               name:  tuning-bridge-fixed
           rng: {}
         machine:
-          type: pc-q35-rhel8.1.0
+          type: pc-q35-rhel8.2.0
         resources:
           requests:
             memory: 2Gi
