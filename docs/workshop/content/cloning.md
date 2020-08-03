@@ -134,11 +134,11 @@ spec:
      creationTimestamp: null
      labels:
        flavor.template.kubevirt.io/small: 'true'
-    os.template.kubevirt.io/rhel7.9: 'true'
-    vm.kubevirt.io/template: rhel7-server-small-v0.7.0
-    vm.kubevirt.io/template.namespace: openshift
-    vm.kubevirt.io/template.revision: '1'
-    vm.kubevirt.io/template.version: v0.11.2
+       os.template.kubevirt.io/rhel7.9: 'true'
+       vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+       vm.kubevirt.io/template.namespace: openshift
+       vm.kubevirt.io/template.revision: '1'
+       vm.kubevirt.io/template.version: v0.11.2
    spec:
      domain:
        cpu:
