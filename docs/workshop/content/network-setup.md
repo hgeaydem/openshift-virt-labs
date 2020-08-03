@@ -228,7 +228,7 @@ spec:
 EOF
 ~~~
 
-###Review the policy
+### Review the policy
 
 Then enquire as to whether it was successfully applied:
 
