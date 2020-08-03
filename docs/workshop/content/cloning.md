@@ -250,7 +250,7 @@ And check for the running nginx service:
 
 Let's quickly verify that this is working as expected - you should be able to navigate directly to the IP address of your machine in your browser - recalling that in the example it's *192.168.47.22*:
 
-> **NOTE**: You need to be using the browser you configured for the bastion's squid for this two work.
+> **NOTE**: You need to be using the browser you configured for the bastion's squid for this to work.
 
 <img src="img/centos7-clone-nginx2.png"/>
 
