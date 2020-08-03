@@ -444,7 +444,6 @@ We use CDI to ensure the volume we're requesting uses the same Centos8 image we 
 $ oc get pods
 NAME                        READY   STATUS    RESTARTS   AGE
 importer-centos8-hostpath   1/1     Running   0          6s
-importer-centos8-nfs        1/1     Running   0          3m12s
 ~~~
 
 You can watch the output of this importer pod with 
