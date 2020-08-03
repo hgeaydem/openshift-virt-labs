@@ -328,16 +328,16 @@ You can watch the progress with where it will go through `CloneScheduled` and `C
 $ watch -n5 oc get datavolume
 Every 5.0s: oc get datavolume
 
-NAME               PHASE             PROGRESS   AGE
-centos7-clone-dv   CloneInProgress              14s
+NAME               PHASE             PROGRESS   RESTARTS   AGE
+centos7-clone-dv   CloneInProgress              0          14s
 (...)
 
-NAME               PHASE             PROGRESS   AGE
-centos7-clone-dv   CloneInProgress   6.43%      2m28s
+NAME               PHASE             PROGRESS   RESTARTS   AGE
+centos7-clone-dv   CloneInProgress   7.29%      0          90s
 (...)
 
-NAME               PHASE       PROGRESS   AGE
-centos7-clone-dv   Succeeded   100.0%     4m6s
+NAME               PHASE             PROGRESS   RESTARTS   AGE
+centos7-clone-dv   CloneInProgress   100.00%    0          2m22s
 
 (Ctrl-C to stop/quit)
 ~~~

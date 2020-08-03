@@ -145,7 +145,7 @@ NAME           AGE   PHASE     IP            NODENAME
 centos7-masq   10s   Running   10.131.0.49   cluster-august-lhrd5-worker-mh52l
 ~~~
 
-But then run it again a few times until you see the IP dissapear (or run a watch):
+But then run it again a few times until you see the IP disappear (or run `watch`):
 
 ~~~bash
 $ oc get vmi/centos7-masq
@@ -153,7 +153,7 @@ NAME           AGE   PHASE     IP    NODENAME
 centos7-masq   38s   Running         cluster-august-lhrd5-worker-mh52l
 ~~~
 
-Oh dear, hat's going on here now? 
+Oh dear, what's going on here now? 
 
 Well as before, this is a clone, and the NIC config will have picked up the old MAC address, which is incorrect for the new VMI.
 
