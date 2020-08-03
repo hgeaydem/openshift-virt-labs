@@ -111,7 +111,7 @@ Now we can apply a new `NodeNetworkConfigurationPolicy` for our worker nodes to 
 
 If your workers have all the same nic config naming then you can specify a nodeSelector like this: `node-role.kubernetes.io/worker: ""` This applies the **same** config to all worker nodes.
 
-REMINDER: If you found you have different naming, as we do in the example above, you'll need to apply different policies, one for each node. If this is the case then skip to [this section now](#different-nic-names) now. Otherwise continue with the example below:
+REMINDER: If you found you have different naming, as we do in the example above, you'll need to apply different policies, one for each node. If this is the case then skip to [Different NIC names](#different-nic-names) below. Otherwise continue with the example below:
 
 **Again, this example covers all workers with the same nic.** In this example it is `ens4` but adjust it to fit yours:
 
@@ -144,9 +144,9 @@ EOF
 nodenetworkconfigurationpolicy.nmstate.io/br1-ens4-policy-workers created
 ~~~
 
-Now proceed to [the next step](#review-the-policy) to review the policy you just set.
+Now proceed to [Review the Policy](#review-the-policy) below to review the policy you just set.
 
-###Different NIC names
+### Different NIC names
 
 If, like in our example here, we have two different nic names (ens6 on cluster-august-lhrd5-worker-6w624 and ens7 on cluster-august-lhrd5-worker-mh52l) you'll need two policies, one for each configuration. First, we need to label the nodes, so we an easily reference them:
 
@@ -168,7 +168,7 @@ Now, we can create unique NNCP's for each node.
 
 Be sure to adjust the port name for the correct nic name as well as the description for clarity. In the below examples we are asking for the policy to match ANY workers (`node-role.kubernetes.io/worker: ""`) with the specific label. This ensures other node types aren't affected.
 
-ens6 on cluster-august-lhrd5-worker-6w624
+ens6 on cluster-august-lhrd5-worker-6w624 (ie nodes with the label `nic2: ens6`)
 
 ~~~bash
 $ cat << EOF | oc apply -f -
@@ -198,7 +198,7 @@ spec:
 EOF
 ~~~
 
-ens7 on cluster-august-lhrd5-worker-mh52l
+ens7 on cluster-august-lhrd5-worker-mh52l (ie nodes with the label `nic2: ens7`)
 
 ~~~bash
 $ cat << EOF | oc apply -f -
