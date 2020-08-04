@@ -145,17 +145,9 @@ NAME           AGE   PHASE     IP            NODENAME
 centos7-masq   10s   Running   10.131.0.49   cluster-august-lhrd5-worker-mh52l
 ~~~
 
-But then run it again a few times until you see the IP disappear (or run `watch`):
+Ok, we do see an IP, but we still need to do one more thing.
 
-~~~bash
-$ oc get vmi/centos7-masq
-NAME           AGE   PHASE     IP    NODENAME
-centos7-masq   38s   Running         cluster-august-lhrd5-worker-mh52l
-~~~
-
-Oh dear, what's going on here now? 
-
-Well as before, this is a clone, and the NIC config will have picked up the old MAC address, which is incorrect for the new VMI.
+As before, this is a clone, and the NIC config will have picked up the old MAC address, which is incorrect for the new VMI. **The IP we are seeing is the public one provided by OpenShift SDN's masquerading service.** However until we correct the VMs config files network traffic won't flow properly.
 
 So, as before use we can use `virtctl` to login (cloud-init on the original build will have ensured the login is enabled and this is possible) and remove the `HWADDR` line from the eth0 config:
 
@@ -200,68 +192,9 @@ centos7-clone-nfs login:
 (ctrl-]) to get back to CLI.
 ~~~ 
 
-So, we did it. Let's look for the IP (be patient, it will take a few moments)
+As you can see the IP assigned to the NIC on the host is not the same as the one reported by OpenShift. Again, that is because the `oc` command is reporting the public IP which OpenShift is using to masqueade traffic behind.
 
-~~~bash
-$ oc get vmi
-NAME                 AGE     PHASE     IP                 NODENAME
-centos7-masq         2m35s   Running                      cluster-august-lhrd5-worker-mh52l
-centos8-server-nfs   97m     Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
-
-$ oc get vmi
-NAME                 AGE     PHASE     IP                 NODENAME
-centos7-masq         2m47s   Running   10.0.2.2/24        cluster-august-lhrd5-worker-mh52l
-centos8-server-nfs   97m     Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
-~~~
-
-Except wait a second ... that's not the IP we saw before.
-
-It has changed to **10.0.2.2**. 
-
-*Why is this? What's going on?*
-
-Well if you remember correctly we used the cloned Centos image which has a qemu-guest-agent installed which can report on the IP assigned *to the host's NIC*. 
-
-But when we use a `masquerade{}` deployment we are, of course, **not** interested in the IP assigned to the host. In fact, we are using this so we can use a private, non-routable range and "hide" behind our masqueraded range (the 10. range). But the agent is trying to be helpful and is telling OpenShift the IP it *thinks* we want and the IP it knows how to give: the IP *on* the hosts NIC. Nice agent, but, sorry, no we don't care.
-
-But they're both there of course.
-
-If you recall, all VMs are managed by pods, and the pod manages the networking. So we can ask the pod associated with the VM for the actual IP ranges being managed here. It's easy ... first find the name of the `launcher` pod associated with this instance:
-
-~~~bash
-$ oc get pods | grep centos7
-virt-launcher-centos7-masq-7flv8         1/1     Running     0          7m56s
-~~~
-
-Then let's ask check with the *pod* for the actual IPs it is managing for the VM:
-
-~~~bash
-$ oc describe pod/virt-launcher-centos7-masq-r2gk4| grep -A 11 networks-status
-              k8s.v1.cni.cncf.io/networks-status:
-                [{
-                    "name": "openshift-sdn",
-                    "interface": "eth0",
-                    "ips": [
-                        "10.131.0.49"
-                    ],
-                    "default": true,
-                    "dns": {}
-                }]
-              kubevirt.io/domain: centos7-masq
-              traffic.sidecar.istio.io/kubevirtInterfaces: k6t-eth0
-~~~
-
-There it is, `10.131.0.49` is "back"!
-
-And again, if you ask OpenShift for the IP, the qemu-guest-agent supplies the *actual* IP that the VM is set to, just like it's designed to do.
-
-~~~bash
-$ oc get vmi
-NAME                 AGE     PHASE     IP                 NODENAME
-centos7-masq         7m27s   Running   10.0.2.2/24        cluster-august-lhrd5-worker-mh52l
-centos8-server-nfs   102m    Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
-~~~
-
+> **NOTE**: In previous versions of OpenShift Virtualization (2.3 and earlier) the *actual* IP on the VM (ie the one assigend to the NIC) was reported. This was corrected via Bug [1795889](https://bugzilla.redhat.com/show_bug.cgi?id=1795889) and is no longer the case.
 
 ## Exposing the VM to the outside world
 
