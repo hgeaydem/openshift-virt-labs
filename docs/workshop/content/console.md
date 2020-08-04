@@ -312,7 +312,11 @@ Why not try some/all/none of the following:
 
  <img src="img/ui/ui-37.png"/>
  
-Your environment has resources to run a few more VMs so have a play and see what you can learn!
+* Create services via the UI!
+
+ <img src="img/ui/ui-38.png"/>
+ 
+**Your environment has resources to run a few more VMs so have a play and see what you can learn!**
 
 Check out the [documentation](https://docs.openshift.com/container-platform/4.5/virt/about-virt.html) for more use case ideas!
 
