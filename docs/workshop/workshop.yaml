@@ -11,3 +11,4 @@ modules:
     - cloning
     - live-migration
     - masquerade
+    - console

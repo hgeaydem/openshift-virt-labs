@@ -25,4 +25,7 @@ modules:
         exit_sign: Masquerade Networking
     masquerade:
         name: Masquerade Networking
+        exit_sign: CNV Console
+    console:
+        name: Using the console
         exit_sign: Finish Workshop

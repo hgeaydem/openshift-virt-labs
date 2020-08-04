@@ -165,7 +165,7 @@ This brings up a an easy to follow wizard to launch the VM:
 Fill out the **General** page with the following details:
 
 * **Name**: Choose an obvious name, here we just went with "centos7-ui-vm"
-* **Description**: Something to help you remember theis moment
+* **Description**: Something to help you remember this moment
 * **Template**: We don't need to select a template for this VM
 * **Source**: Choose *Disk* as we are going to select our prepared and imported PVC (we do this in a later screen)
 * **Operating System**: "Red Hat Enterprise Linux 7.0 or higher" is fine for CentOS 7 :)
@@ -185,13 +185,13 @@ Let's use our bridge adapter to access the external network again. Choose the th
 * Leave the **Name** and **Model** as they are.
 * Set **Network** to "tuning-bridge-fixed" to use our network policy and access the external network.
 * Ensure **Type** is "Bridge"
-* Set **MAC Address** to one the reserved address `de:ad:be:ef:00:02` to ensure things work within RHPDS
+* Set **MAC Address** to `de:ad:be:ef:00:02` This ensures that things work within RHPDS
 
 <img src="img/ui/ui-23.png"/>
 
 And Click "**Save**" and then "**Next**"
 
-You are now on the **Disks* setup.
+You are now on the **Disks** setup.
 
 Choose "**Add Disk** and fill out as follows:
 
