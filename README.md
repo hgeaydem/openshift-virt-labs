@@ -50,6 +50,32 @@ Within this environment you can access all aspects of the lab through the deploy
 
 Your RHPDS email will provide full intructions for setting up your access.
 
+But for simplicity, you need to do only a few simple things:
+
+1) SSH to the bastion host created for you and port forward your local hosts' port 8080 to the squid port on the bastion (3128)
+
+~~~bash
+$ ssh *RHPDS-USERNAME*@bastion.*UID*.dynamic.opentlc.com -L 8080:127.0.0.1:3128
+~~~
+
+This allows you to connect a browser to local port 8080 and see the "Public" network in the lab.
+
+>**NOTE**: Full SSH connection details, including username, hostname, and password are in the RHPDS email.
+
+2) Set your browser (we've tested Firefox and had the most success with this - your mileage may vary with other browsers) to use localhost:8080 for all protocols, and make sure you enable DNS over SOCKSv5 - this avoids any challenges with local DNS:
+
+<center>
+    <img src="docs/workshop/content/img/firefox-proxy.png"/>
+</center>
+
+3) Open the URL for the OpenShift Virtualization Lab Workbook in the browser you connected to the bastion (looks like https://cnv-workbook.apps.cluster-*UID*.dynamic.opentlc.com)
+
+>**NOTE**: You will need to accept the SSL warnings but you do not need to login to the workbook.
+
+<center>
+    <img src="docs/workshop/content/img/rhpds-lab-url.png"/>
+</center>
+
 ### Contributing
 
 **We very much welcome contributions and pull requests!**
