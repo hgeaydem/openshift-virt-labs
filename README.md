@@ -48,14 +48,14 @@ Within this environment you can access all aspects of the lab through the deploy
 
 ### Getting Started
 
-Your RHPDS email will provide full intructions for setting up your access.
+Your RHPDS email will provide full intructions for setting up your access including your unique username, UID, and passwords.
 
-But for simplicity, you need to do only a few simple things:
+But for simplicity, you need to do only a few things:
 
 1) SSH to the bastion host created for you and port forward your local hosts' port 8080 to the squid port on the bastion (3128)
 
 ~~~bash
-$ ssh *RHPDS-USERNAME*@bastion.*UID*.dynamic.opentlc.com -L 8080:127.0.0.1:3128
+$ ssh RHPDS-USERNAME@bastion.UID.dynamic.opentlc.com -L 8080:127.0.0.1:3128
 ~~~
 
 This allows you to connect a browser to local port 8080 and see the "Public" network in the lab.
