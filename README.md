@@ -18,7 +18,14 @@ To launch the lab in RHPDS ... TBA.
 
 The lab includes a self-hosted OpenShift Virtualization environment and a hands-on self-paced lab guide based on [OpenShift homeroom](https://github.com/openshift-homeroom).
 
-> **NOTE**: For the purposes of this repo and the labs themselves, any reference to "CNV", "Container-native Virtualization" and "OpenShift Virtualization", and "KubeVirt" can be used interchangeably.
+The Lab content is presented in three easy to use panes consisting of the following sections: navigation, lab steps, working environment. Adjust sizing to suit!
+
+You'll have access to an OpenShift CLI environment as well as the console.
+
+All labs steps are expected to be run from *within* this environment; you do not need to use the bastion's CLI or login to the OpenShift Console directly.
+
+
+
 
 # Lab content
 
@@ -45,6 +52,8 @@ The deployment is visualised as follows:
 </center>
 
 Within this environment you can access all aspects of the lab through the deployed lab guide. You receive access to that guide with the RHPDS welcome email.
+
+> **NOTE**: For the purposes of this repo and the labs themselves, any reference to "CNV", "Container-native Virtualization" and "OpenShift Virtualization", and "KubeVirt" can be used interchangeably.
 
 ### Getting Started
 
