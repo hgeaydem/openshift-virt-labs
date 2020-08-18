@@ -25,8 +25,6 @@ You'll have access to an OpenShift CLI environment as well as the console.
 All labs steps are expected to be run from *within* this environment; you do not need to use the bastion's CLI or login to the OpenShift Console directly.
 
 
-
-
 # Lab content
 
 The lab uses official Red Hat downstream components, where **OpenShift Virtualization** is now the official feature name of the packaged up [Kubevirt project](https://kubevirt.io/) within the OpenShift product. 
@@ -82,7 +80,7 @@ This allows you to connect a browser to local port 8080 and see the "Public" net
 >**NOTE**: You will need to accept the SSL warnings but you do not need to login to the workbook.
 
 <center>
-    <img src="docs/workshop/content/img/rhpds-lab-url.png"/>
+    <img src="docs/workshop/content/img/lab-cli-view.png"/>
 </center>
 
 ### Contributing
