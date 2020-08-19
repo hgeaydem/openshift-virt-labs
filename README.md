@@ -39,7 +39,7 @@ The lab runs you through the following OpenShift Virtualization tasks:
 * **[Cloning Workloads](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/cloning.md)**
 * **[Performing Live Migrations and Node Maintenance](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/live-migration.md)**
 * **[Utilising pod networking for VM's](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/masquerade.md)**
-* **[Using the OpenShift Web Console with OpenShift Virtualization](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/console.md)** (beta, under review!)
+* **[Using the OpenShift Web Console with OpenShift Virtualization](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/console.md)** 
 
 As mentioned above, the entire setup is provided contained within infrastructure provided by RHPDS. This means you can easily deploy the lab, follow some simple setuo instructions, and you will have your own OpenShift cluster to work on with full admin access. 
 
