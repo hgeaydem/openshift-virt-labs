@@ -8,11 +8,11 @@ Use the **Console** portion of the lab for the next steps. As a reminder, the ac
 
 Next, navigate to the top-level '**Operators**' menu entry, and select '**OperatorHub**'. This lists all of the available operators that you can install from the Red Hat Marketplace. Simply start typing '**virtualization**' in the search box and you should see an entry called "OpenShift Virtualization". 
 
-<img  border="1" src="img/ocp-virt-operator-panel.png"/>
+<img  border="1" src="img/ocp-virt-operator-panel-2.png"/>
 
 Select it and you'll see a window that looks like the following:
 
-<img  border="1" src="img/ocp-virt-operator-install.png"/>
+<img  border="1" src="img/ocp-virt-operator-install-2.png"/>
 
 Click the 'Install' button. This takes you to a second window where you can set some details about the installation. Spend some time to review it, but you can leave the defaults as they'll automatically select the latest version of OpenShift virtualisation and will allow the software to be installed automatically:
 
