@@ -95,9 +95,26 @@ spec:
             claimName: centos8-nfs
         - cloudInitNoCloud:
             userData: |-
-              #cloud-config
-              password: redhat
-              chpasswd: {expire: False}
+                #cloud-config
+                password: redhat
+                chpasswd: {expire: False}
+                write_files:
+                  - content: |
+                      # hi
+                      DEVICE=eth0
+                      HWADDR=de:ad:be:ef:00:01
+                      ONBOOT=yes
+                      TYPE=Ethernet
+                      USERCTL=no
+                      IPADDR=192.168.47.5
+                      PREFIX=24
+                      GATEWAY=192.168.47.1   
+                    path:  /etc/sysconfig/network-scripts/ifcfg-eth0
+                    permissions: '0644'
+                runcmd:
+                  - ifdown eth0
+                  - ifup eth0
+                  - systemctl restart qemu-guest-agent.service
           name: cloudinitdisk
 EOF
 
@@ -119,6 +136,8 @@ centos8-server-nfs   8s    Running         cluster-august-lhrd5-worker-6w62
 > **NOTE**: A `vm` object is the definition of the virtual machine, whereas a `vmi` is an instance of that virtual machine definition.
 
 After a few minutes the machine will report its IP:
+
+> **NOTE**: Due to some environmental issues and an OpenStack Bug in OVN this will take around 6-7 minutes to report.
 
 ~~~bash
 $ oc get vmi
