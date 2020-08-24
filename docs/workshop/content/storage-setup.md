@@ -67,12 +67,12 @@ When creating the PV's we need to tell OpenShift what IP the NFS server is on. T
 
 As explained, this network is plumbed into the bastion and all the workers as an example of a "public" or "external" (ie not controlled by OpenShift) network. In the example above, you'd use **192.168.47.16** in the PV claims below. 
 
-Ok, with all that clear, let's create our PVs (**LAST WARNING! Remember to substitute the correct IP and paths for each claim**):
+Ok, with all that clear, let's create our PVs (**LAST WARNING! Remember to substitute the correct IP and paths for each claim**) - when you create these temporary files, don't forget to edit the file with the correct IP before applying it:
 
-Create nfs-pv1:
+Return to the web console if you're using it, and then create nfs-pv1:
 
 ~~~bash
-$ cat << EOF | oc apply -f -
+$ cat << EOF > nfs1.yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -91,13 +91,14 @@ spec:
   volumeMode: Filesystem
 EOF
 
+$ oc apply -f nfs1.yaml
 persistentvolume/nfs-pv1 created
 ~~~
 
 Create nfs-pv2:
 
 ~~~bash
-$ cat << EOF | oc apply -f -
+$ cat << EOF > nfs2.yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -116,10 +117,9 @@ spec:
   volumeMode: Filesystem
 EOF
 
+$ oc apply -f nfs2.yaml
 persistentvolume/nfs-pv2 created
 ~~~
-
-
 
 Check the PV's:
 
@@ -128,7 +128,6 @@ $ oc get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                             STORAGECLASS   REASON   AGE
 nfs-pv1                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                     37s
 nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                     19s
-pvc-11b35321-1aa4-4723-a436-66591f81417c   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                131
 ~~~
 
 
@@ -259,7 +258,8 @@ This same configuration should be reflected when asking OpenShift for a list of 
 $ oc get pvc
 NAME          STATUS   VOLUME    CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 centos8-nfs   Bound    nfs-pv1   10Gi       RWO,RWX        nfs            32s
-[cloud-user@bastion ~]$ oc get pv
+
+$ oc get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                             STORAGECLASS   REASON   AGE
 nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound       default/centos8-nfs                               nfs                     109s
 nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                     91s
@@ -390,7 +390,7 @@ hostpathprovisioner.hostpathprovisioner.kubevirt.io/hostpath-provisioner created
 When you've applied this config, an additional pod will be spawned on each of the worker nodes; this pod is responsible for managing the hostpath access on the respective host; note the shorter age (42s in the example below):
 
 ~~~bash
-[cloud-user@bastion ~]$ oc get pods -n openshift-cnv | grep hostpath
+$ oc get pods -n openshift-cnv | grep hostpath
 hostpath-provisioner-dzgjz                         1/1     Running           0          12s
 hostpath-provisioner-kv8qw                         1/1     Running           0          12s
 hostpath-provisioner-operator-8f985f9-sln69        1/1     Running           0          6m34s
@@ -450,7 +450,7 @@ You can watch the output of this importer pod with
 `oc logs -f importer-centos8-hostpath`. 
 
 ~~~bash
-[cloud-user@bastion ~]$ oc logs -f importer-centos8-hostpath
+$ oc logs -f importer-centos8-hostpath
 I0724 03:43:59.574566       1 importer.go:51] Starting importer
 I0724 03:43:59.574670       1 importer.go:107] begin import process
 I0724 03:43:59.740542       1 data-processor.go:275] Calculating available size

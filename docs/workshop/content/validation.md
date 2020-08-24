@@ -120,14 +120,14 @@ duckhunt-js   duckhunt-js-default.apps.cluster-august.students.osp.opentlc.com  
 one
 ~~~
 
-You should be able to open up the application in the same browser that you're reading this guide from, either copy and paste the address, or click this clink: [http://duckhunt-js-default.apps.cluster-august.students.osp.opentlc.com](http://duckhunt-js-default.apps.cluster-{{ GUID }}.students.osp.opentlc.com). If your OpenShift cluster is working as expected and the application build was successful, you should now be able to have a quick play with this... good luck ;-)
+You should be able to open up the application in the same browser that you're reading this guide from - copy and paste the link from the route output listed under "HOST/PORT". If your OpenShift cluster is working as expected and the application build was successful, you should now be able to have a quick play with this... good luck ;-)
 
 <img src="img/duckhunt.png"/>
 
 Now, if you can tear yourself away from the game, let's actually start working with OpenShift Virtualization, first let's just clean up the default project ...
 
 ~~~bash
-$ oc delete dc/duckhunt-js bc/duckhunt-js svc/duckhunt-js route/duckhunt-js
+$ oc delete deployment/duckhunt-js bc/duckhunt-js svc/duckhunt-js route/duckhunt-js
 deployment.apps "duckhunt-js" deleted
 buildconfig.build.openshift.io "duckhunt-js" deleted
 service "duckhunt-js" deleted

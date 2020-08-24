@@ -26,7 +26,7 @@ Wait for the install to complete successfully; it may take a few minutes:
 
 <img  border="1" src="img/ocp-virt-operatore-install-success.png"/>
 
-Next we need to deploy the rest of the OpenShift Virtualization components that this operator provides. Select the "**OpenShiftirtualization**" link under the '**Name**' column, and you'll be presented with the following:
+Next we need to deploy the rest of the OpenShift Virtualization components that this operator provides. Select the "**OpenShift Virtualization**" link under the '**Name**' column, and you'll be presented with the following:
 
 <img  border="1" src="img/ocp-virt-hco-1.png"/>
 
