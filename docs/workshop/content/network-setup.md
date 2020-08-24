@@ -106,7 +106,7 @@ spec:
   desiredState:
     interfaces:
       - name: br1
-        description: Linux bridge with ens4 as a port
+        description: Linux bridge with ens6 as a port
         type: linux-bridge
         state: up
         ipv4:
@@ -120,7 +120,7 @@ spec:
             - name: ens6
 EOF
 
-nodenetworkconfigurationpolicy.nmstate.io/br1-ens4-policy-workers created
+nodenetworkconfigurationpolicy.nmstate.io/br1-ens6-policy-workers created
 ~~~
 
 Then check as to whether it was successfully applied:
@@ -133,6 +133,7 @@ br1-ens6-policy-workers   SuccessfullyConfigured
 $ oc get nnce
 NAME                                                        STATUS
 cluster-august-lhrd5-worker-6w624.br1-ens6-policy-workers   SuccessfullyConfigured
+cluster-august-lhrd5-worker-mh52l.br1-ens6-policy-workers   SuccessfullyConfigured
 ~~~
 
 We can also dive into the `NetworkNodeConfigurationPolicy` (**nncp**) a little further:
