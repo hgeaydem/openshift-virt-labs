@@ -1,0 +1,36 @@
+#cloud-config
+password: redhat
+chpasswd: {expire: False}
+ssh_pwauth: 1
+write_files:
+  - path: /etc/systemd/system/nginx.service
+    permissions: ‘0755’
+    content: |
+        [Unit]
+        Description=Nginx Podman container
+        Wants=syslog.service
+        [Service]
+        ExecStart=/usr/bin/podman run --net=host nginxdemos/hello
+        ExecStop=/usr/bin/podman stop --all
+        [Install]
+        WantedBy=multi-user.target
+  - content: |
+        # hi
+        DEVICE=eth0
+        HWADDR=de:ad:be:ef:00:02
+        ONBOOT=yes
+        TYPE=Ethernet
+        USERCTL=no
+        IPADDR=192.168.47.6
+        PREFIX=24
+        GATEWAY=192.168.47.1   
+        DNS1=150.239.16.11
+        DNS2=150.239.16.12
+    path:  /etc/sysconfig/network-scripts/ifcfg-eth0
+    permissions: '0644'
+runcmd:
+  - [ systemctl, restart, network ]
+  - [ yum, install, -y, podman ]
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, nginx ]
+  - [ systemctl, start, --no-block, nginx ]  

@@ -222,19 +222,15 @@ Before clicking **Next** ensure you set the "**Boot Source**" to "disk-0" so we 
 
 Choose **Next** to move to the "**Advanced**" section.
 
-Here we will set our cloud-init config to run. Choose the "**Custom Script**" radio button and enter the cloud-init details into the box:
+Here we will set our cloud-init config to run. Choose the "**Custom Script**" radio button and enter the cloud-init details into the box.
+
+To view this config outside of the lab environment go to [https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds/configs/centos7-ui-vm-cloud-init.txt](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds/configs/centos7-ui-vm-cloud-init.txt)
 
 ~~~bash
 #cloud-config
 password: redhat
 chpasswd: {expire: False}
 ssh_pwauth: 1
-packages:
-  - podman
-runcmd:
-  - [ systemctl, daemon-reload ]
-  - [ systemctl, enable, nginx ]
-  - [ systemctl, start, --no-block, nginx ]
 write_files:
   - path: /etc/systemd/system/nginx.service
     permissions: ‘0755’
@@ -247,9 +243,29 @@ write_files:
         ExecStop=/usr/bin/podman stop --all
         [Install]
         WantedBy=multi-user.target
+  - content: |
+        # hi
+        DEVICE=eth0
+        HWADDR=de:ad:be:ef:00:02
+        ONBOOT=yes
+        TYPE=Ethernet
+        USERCTL=no
+        IPADDR=192.168.47.6
+        PREFIX=24
+        GATEWAY=192.168.47.1   
+        DNS1=150.239.16.11
+        DNS2=150.239.16.12
+    path:  /etc/sysconfig/network-scripts/ifcfg-eth0
+    permissions: '0644'
+runcmd:
+  - [ systemctl, restart, network ]
+  - [ yum, install, -y, podman ]
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, nginx ]
+  - [ systemctl, start, --no-block, nginx ]  
 ~~~
 
-<img src="img/ui/ui-26.png"/>
+<img src="img/ui/ui-26a.png"/>
 
 Next select "**Next**" to move to the next screen.
 
@@ -259,7 +275,7 @@ You can now "**Review and confirm your settings**"
 
 <img src="img/ui/ui-27.png"/>
 
-For the moment, leave the "**Start virtual machine on creation**" **_UNTICKED_**. This prevents the VM_I_ from starting.
+For the moment, leave the "**Start virtual machine on creation**" **_UNTICKED_**. This prevents the VMI from starting.
 
 <img src="img/ui/ui-28.png"/>
 
@@ -276,7 +292,7 @@ centos8-server-nfs   3h4m
 [~] $ oc get vmi
 NAME                 AGE    PHASE     IP                 NODENAME
 centos7-masq         142m   Running   10.131.0.16        cluster-august-mssw8-worker-6cpjw
-centos8-server-nfs   3h4m   Running   192.168.47.16/24   cluster-august-mssw8-worker-6cpjw
+centos8-server-nfs   3h4m   Running   192.168.47.5/24   cluster-august-mssw8-worker-6cpjw
 ~~~
 
 Have a look around before starting the VM!
@@ -286,6 +302,8 @@ When ready, go back to the console and under the new VM's "**Details**" page sel
 <img src="img/ui/ui-29.png"/>
 
 **The VM will start!**
+
+**Note>** It will take 6-7 minutes due to the environmental restrictions in RHPDS. The console will reflect this with the following message as Centos waiys for the NIC to timeout and be configured: `[**    ] A start job is running for LSB: Bri...n networking (1min 3s / 5min 5s)`
 
 You can watch this process from a number of areas, check the "Console" and "Events" tabs for a start.
 
