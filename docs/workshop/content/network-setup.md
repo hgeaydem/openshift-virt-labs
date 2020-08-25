@@ -1,6 +1,6 @@
 In this section we're going to be configuring the networking for our environment. 
 
-With OpenShift virtualisation we have a few different options for networking - we can just have our virtual machines be attached to the same pod networks that our containers would have access to, or we can configure more real-world virtualisation networking constructs like bridged networking, SR/IOV, and so on. It's also absolutely possible to have a combination of these, e.g. both pod networking and a bridged interface directly attached to a VM at the same time, using Multus, the default networking CNI in OpenShift 4.x.
+With OpenShift Virtualization we have a few different options for networking - we can just have our virtual machines be attached to the same pod networks that our containers would have access to, or we can configure more real-world virtualization networking constructs like bridged networking, SR/IOV, and so on. It's also absolutely possible to have a combination of these, e.g. both pod networking and a bridged interface directly attached to a VM at the same time, using Multus, the default networking CNI in OpenShift 4.x.
 
 In this lab we're going to enable multiple options - pod networking and a secondary network interface provided by a bridge on the underlying worker nodes (hypervisors). Each of the worker nodes has been configured with an additional, currently unused, network interface. To utilise this we'll need a bridge device, `br1` to be created so we can attach our virtual machines to it. 
 
@@ -187,7 +187,7 @@ status:
 
 > **NOTE**: You might also like to try going onto each node with `oc debug node/node_name` and running an `ip a`. You'll find br1 holding the node's IP! 
 
-Now that the "physical" networking is configured on the underlying worker nodes, we need to then define a `NetworkAttachmentDefinition` so that when we want to use this bridge, OpenShift and OpenShift virtualisation know how to attach into it. This associates the bridge we just defined with a logical name, known here as '**tuning-bridge-fixed**':
+Now that the "physical" networking is configured on the underlying worker nodes, we need to then define a `NetworkAttachmentDefinition` so that when we want to use this bridge, OpenShift and OpenShift Virtualization know how to attach into it. This associates the bridge we just defined with a logical name, known here as '**tuning-bridge-fixed**':
 
 > **NOTE**: Since we named the bridge `br1` on both nodes in both our NodeNetworkConfigurationPolicy's we don't need to create multiple versions of this `NetworkAttachmentDefinition`.
 

@@ -1,8 +1,8 @@
-Now that you've had a chance to dive into how OpenShift Virtualization works at a very deep level, let's spend a little time looking at an equally important component of the OpenShift virtualization experience: **the User Interface (UI)**. 
+Now that you've had a chance to dive into how OpenShift Virtualization works at a very deep level, let's spend a little time looking at an equally important component of the OpenShift Virtualization experience: **the User Interface (UI)**. 
 
 As with all Red Hat products OpenShift Virtualization offers a rich CLI allowing administrators to easily script repetitive actions, dive deep into components, and create almost infinite levels of configuration. 
 
-In these labs you've used both `virtctl`, the OpenShift virtualisation client, and `oc`, the OpenShift Container Platform client, to do many tasks.
+In these labs you've used both `virtctl`, the OpenShift Virtualization client, and `oc`, the OpenShift Container Platform client, to do many tasks.
 
 However, the need for an easy to use, developer friendly user experience is also a key value for OpenShift and OpenShift Virtualization. Let's take a look at some of the outcomes and actions from the previous labs and how they can be achived and used from within OpenShift's exceptional UI.
 
@@ -35,7 +35,7 @@ Across the top is a menu allowing you deeper access to administer and access the
 
 Be sure to look at the different entries for different types of virtual machines. You should be able to directly connect the names, values, and information to the services and objects you created before.
 
-But it's not just the VM instances available. OpenShift virtualisation is merely an extension to OpenShift and all the components we created and used for our VMs are part of the OpenShift experience just like they are for pods. On the menu on the left choose "**Networking**" and select "**Services**":
+But it's not just the VM instances available. OpenShift Virtualization is merely an extension to OpenShift and all the components we created and used for our VMs are part of the OpenShift experience just like they are for pods. On the menu on the left choose "**Networking**" and select "**Services**":
 
 <img src="img/ui/ui-4.png"/>
 

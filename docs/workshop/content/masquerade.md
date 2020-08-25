@@ -222,9 +222,9 @@ As you can see the IP assigned to the NIC on the host is not the same as the one
 
 ## Exposing the VM to the outside world
 
-In this step we're going to expose our VM to the outside world using OpenShift/Kubernetes networking constructs, namely services and routes. To do this we will again use the OpenShift virtualisation `virtctl` tool so we can set up the routes for our services. 
+In this step we're going to expose our VM to the outside world using OpenShift/Kubernetes networking constructs, namely services and routes. To do this we will again use the OpenShift Virtualization `virtctl` tool so we can set up the routes for our services. 
 
-As a reminder, the `virtctl` tool is the CLI-based utility that allows you to interact with an OpenShift Virtualization install which bridges some of the gaps between the virtualisation world and the world that Kubernetes was designed for. 
+As a reminder, the `virtctl` tool is the CLI-based utility that allows you to interact with an OpenShift Virtualization install which bridges some of the gaps between the virtualization world and the world that Kubernetes was designed for. 
 
 For example, the `virtctl` tool provides the capability of managing the lifecycle of virtual machines (starting, stopping, restarting, etc), providing access to the virtual consoles, uploading virtual machine images, as well as interfacing with Kubernetes constructs such as services, routes, and alike.
 

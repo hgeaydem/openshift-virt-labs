@@ -1,11 +1,11 @@
 **<u>[Work in Progress]</u>**
 
-In this section we're going to be upgrading OpenShift virtualisation from 2.3 to 2.4 (currently in development). As all of the OpenShift virtualisation install is operator driven we can simply change the version that we're currently subscribed to and it should do all of the rest for us. A word of warning though, the code is in a constant state of flux and may not upgrade successfully, if at all. We've put this at the end of the lab guide merely to show you the typical process that can be expected, understanding that the majority of lab steps should have completed successfully under 2.3, not with the intention of the upgrade itself being successful.
+In this section we're going to be upgrading OpenShift Virtualization from 2.3 to 2.4 (currently in development). As all of the OpenShift Virtualization install is operator driven we can simply change the version that we're currently subscribed to and it should do all of the rest for us. A word of warning though, the code is in a constant state of flux and may not upgrade successfully, if at all. We've put this at the end of the lab guide merely to show you the typical process that can be expected, understanding that the majority of lab steps should have completed successfully under 2.3, not with the intention of the upgrade itself being successful.
 
 
 ## Upgrading via the UI
 
-The quickest and most efficient way of upgrading OpenShift virtualisation from 2.3 to 2.4 is within the OpenShift Console. At the top window select "**Console**" and then navigate to "**Operators**" > "**Installed Operators**".
+The quickest and most efficient way of upgrading OpenShift Virtualization from 2.3 to 2.4 is within the OpenShift Console. At the top window select "**Console**" and then navigate to "**Operators**" > "**Installed Operators**".
 
 You now need to choose the project pulldown at the top of the screen and select "**Project: openshift-cnv**". 
 
