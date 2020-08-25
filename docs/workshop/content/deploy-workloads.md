@@ -17,9 +17,9 @@ centos8-nfs        Bound    nfs-pv1                                    10Gi     
 
 To enable Live Migration the PVC must be of the type "RWX". RWX stands for "ReadWriteMany". This means that _many_ nodes can mount the volume as _read-write_.
 
-Finally we are using the images built in cloud-init functionality to set the default user's password to "redhat". This means we can login directly to the instance as username centos, password redhat.
+Finally we are using the images built in cloud-init functionality to set the *centos* user's password to *redhat*. **This means we can login directly to the instance as username *centos*, password *redhat*.**
 
-> **NOTE**: There's a lot of YAML ahead. You can cut and paste, but spend some time reviewing the config and see if it makes sense _before_ you run it.
+> **NOTE**: There's a lot of YAML ahead. You can cut and paste, but spend some time reviewing the config and see if it makes sense _before_ you run it. To view outside of this environment go to [https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds/configs/centos8-nfs.yaml](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds/configs/centos8-nfs.yaml).
 
 Ok, let's create the VM:
 
@@ -109,6 +109,8 @@ spec:
                       IPADDR=192.168.47.5
                       PREFIX=24
                       GATEWAY=192.168.47.1   
+                      DNS1=150.239.16.11
+                      DNS2=150.239.16.12
                     path:  /etc/sysconfig/network-scripts/ifcfg-eth0
                     permissions: '0644'
                 runcmd:
