@@ -1,0 +1,64 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  annotations:
+    kubevirt.io/latest-observed-api-version: v1alpha3
+    kubevirt.io/storage-observed-api-version: v1alpha3
+    name.os.template.kubevirt.io/centos7.0: CentOS 7
+  name: centos7-masq
+  namespace: default
+  labels:
+    app: centos7-masq
+    flavor.template.kubevirt.io/small: 'true'
+    os.template.kubevirt.io/rhel7.9: 'true'
+    vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+    vm.kubevirt.io/template.namespace: openshift
+    vm.kubevirt.io/template.revision: '1'
+    vm.kubevirt.io/template.version: v0.11.2
+    workload.template.kubevirt.io/server: 'true'
+spec:
+  running: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        flavor.template.kubevirt.io/small: 'true'
+        kubevirt.io/domain: centos7-masq
+        kubevirt.io/size: small
+        os.template.kubevirt.io/centos7.0: 'true'
+        vm.kubevirt.io/name: centos7-masq
+        workload.template.kubevirt.io/server: 'true'
+    spec:
+      domain:
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: disk-0
+          interfaces:
+            - masquerade: {}
+              model: virtio
+              name: nic-0
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel8.2.0
+        resources:
+          requests:
+            memory: 2Gi
+      evictionStrategy: LiveMigrate
+      hostname: centos7-masq
+      networks:
+        - name: nic-0
+          pod: {}
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: disk-0
+          persistentVolumeClaim:
+            claimName: centos7-clone-nfs
+

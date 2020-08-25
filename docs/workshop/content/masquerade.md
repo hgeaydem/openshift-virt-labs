@@ -33,6 +33,8 @@ volumes:
 
 So let's go ahead and create a `VirtualMachine` using our existing Centos 7 image via a PVC we created previously. *Look closely, we are using our cloned PVC so we get the benefits of the installed **NGINX** server and ssh configuration!*
 
+You can find an external version of this yaml at [https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds/configs/centos7-masq.yaml](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds/configs/centos7-masq.yaml)
+
 ~~~bash
 $ cat << EOF | oc apply -f -
 apiVersion: kubevirt.io/v1alpha3
@@ -147,9 +149,9 @@ centos7-masq   10s   Running   10.131.0.49   cluster-august-lhrd5-worker-mh52l
 
 Ok, we do see an IP, but we still need to do one more thing.
 
-As before, this is a clone, and the NIC config will have picked up the old MAC address, which is incorrect for the new VMI. **The IP we are seeing is the public one provided by OpenShift SDN's masquerading service.** However until we correct the VMs config files network traffic won't flow properly.
+In this case the NIC config will have picked up the old MAC address from the clone source, which is incorrect for the new VMI. **The IP we are seeing is the public one provided by OpenShift SDN's masquerading service.** However until we correct the VMs config files network traffic won't flow properly.
 
-So, as before use we can use `virtctl` to login (cloud-init on the original build will have ensured the login is enabled and this is possible) and remove the `HWADDR` line from the eth0 config:
+So, as before use we can use `virtctl` to login (cloud-init on the original build will have ensured the login is enabled and this is possible) and adjust the eth0 config.
 
 ~~~bash
 $ virtctl console centos7-masq
@@ -162,7 +164,22 @@ centos7-clone-nfs login: centos
 Password:
 Last login: Wed Jul 22 01:36:32 on ttyS0
 [centos@centos7-clone-nfs ~]$ sudo vi /etc/sysconfig/network-scripts/ifcfg-eth0
+~~~
 
+First review the contents of `/etc/sysconfig/network-scripts/ifcfg-eth0`. You should see the configuration we created when we built the source VM.
+
+Replace the contents with something more generic:
+
+~~~bash
+DEVICE=eth0
+ONBOOT=yes
+TYPE=Ethernet
+BOOTPROTO=dhcp
+~~~
+
+And then start the interface:
+
+~~~bash
 [centos@centos7-clone-nfs ~]$ sudo ifup eth0
 
 Determining IP information for eth0... done.
@@ -180,7 +197,14 @@ Determining IP information for eth0... done.
        valid_lft 86313598sec preferred_lft 86313598sec
     inet6 fe80::ff:fe97:cd40/64 scope link
        valid_lft forever preferred_lft forever
+~~~
 
+Now the VMI has an IP on the internal network for OpenShift.
+You'll also find podman installed and a runing NGINX of course!
+
+Exit the VM and proceed.
+
+~~~bash
 [centos@centos7-clone-nfs ~]$ exit
 logout
 
@@ -236,7 +260,7 @@ You can now visit that endpoint via an HTTPS connection (ie, in this example it 
 
 > **NOTE**: If you get an "Application is not available" message, make sure that you're accessing the route with **https** - the router performs TLS termination for us, and therefore there's not actually anything listening on port 80 on the outside world, it just forwards 443 (OpenShift ingress) -> 80 (pod).
 
-As you can see, NGINX is there showing the cloned name (of course) and we can see the internal, host-assigned, IP.
+As you can see, NGINX is there and we can see the internal IP assigned to eth0 on the host.
 
 <img src="img/centos7-masq-nginx-close.png"/>
 
