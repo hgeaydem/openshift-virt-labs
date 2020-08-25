@@ -132,9 +132,14 @@ br1-ens6-policy-workers   SuccessfullyConfigured
 
 $ oc get nnce
 NAME                                                        STATUS
-cluster-august-lhrd5-worker-6w624.br1-ens6-policy-workers   SuccessfullyConfigured
+cluster-august-lhrd5-master-0.br1-ens6-policy-workers       NodeSelectorNotMatching
+cluster-august-lhrd5-master-1.br1-ens6-policy-workers       NodeSelectorNotMatching
+cluster-august-lhrd5-master-2.br1-ens6-policy-workers       NodeSelectorNotMatching
 cluster-august-lhrd5-worker-mh52l.br1-ens6-policy-workers   SuccessfullyConfigured
+cluster-august-lhrd5-worker-6w624.br1-ens6-policy-workers   SuccessfullyConfigured
 ~~~
+
+> **NOTE**: Only our workers will have matched the node selector, hence why only two of the above nodes show as "SuccessfullyConfigured".
 
 We can also dive into the `NetworkNodeConfigurationPolicy` (**nncp**) a little further:
 

@@ -41,6 +41,16 @@ standard (default)   kubernetes.io/cinder           Delete          WaitForFirst
 
 >**NOTE**: The second class there, called **standard** is for OpenStack's Cinder service and is an artefact of the RHPDS' deployment. We won't use it for these labs, as it provides only an RWO access method which is not ideal for VMs and Live Migration. 
 
+Let's just make sure that the default storage class is now the NFS one as opposed to the Cinder one that we won't be using:
+
+~~~bash
+$ oc patch storageclass standard -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "false"}}}'
+storageclass.storage.k8s.io/standard patched
+
+$ oc patch storageclass nfs -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
+storageclass.storage.k8s.io/nfs patched
+~~~
+
 Next we will create some NFS-backed persistent volumes (PVs) for our VM persistent volume claims (PV) to utilise. However, before we do that, let's review the NFS setup we are going to use.
 
 We have deployed a simple NFS server to the RHPDS bastion host. This is the same machine you connected to as lab-user to port forward for the squid. The NFS server is sharing four directories on that host. You can view the setup directly on that bastion (not from within the lab environment's CLI):
@@ -91,6 +101,9 @@ spec:
   volumeMode: Filesystem
 EOF
 
+$ vi nfs1.yaml
+(update the IP with the your bastion VM's IP and remove the arrow/CHANGEME text)
+
 $ oc apply -f nfs1.yaml
 persistentvolume/nfs-pv1 created
 ~~~
@@ -116,6 +129,9 @@ spec:
   storageClassName: nfs
   volumeMode: Filesystem
 EOF
+
+$ vi nfs2.yaml
+(update the IP with the your bastion VM's IP and remove the arrow/CHANGEME text)
 
 $ oc apply -f nfs2.yaml
 persistentvolume/nfs-pv2 created
@@ -263,7 +279,6 @@ $ oc get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                             STORAGECLASS   REASON   AGE
 nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound       default/centos8-nfs                               nfs                     109s
 nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                     91s
-pvc-11b35321-1aa4-4723-a436-66591f81417c   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                132m
 ~~~
 
 Recall that when we setup the `PV` resources we specified the location and path of the NFS server on that bastion that we wanted to utilise:
@@ -480,7 +495,6 @@ $ oc get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                                             STORAGECLASS           REASON   AGE
 nfs-pv1                                    10Gi       RWO,RWX        Delete           Bound       default/centos8-nfs                               nfs                             16m
 nfs-pv2                                    10Gi       RWO,RWX        Delete           Available                                                     nfs                             16m
-pvc-11b35321-1aa4-4723-a436-66591f81417c   100Gi      RWO            Delete           Bound       openshift-image-registry/image-registry-storage   standard                        147m
 pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb   29Gi       RWO            Delete           Bound       default/centos8-hostpath                          hostpath-provisioner            2m45s
 ~~~
 
@@ -520,7 +534,7 @@ Let's look more closely to verify that this truly has been created for us on the
 
 > **NOTE**: Adjust the following values to your environment. 
 
-Create a debug pod and session on the node listed above
+Create a debug pod and session on the node listed above:
 
 ~~~bash
 $ oc debug node/cluster-august-lhrd5-worker-6w624
@@ -532,7 +546,7 @@ sh-4.2# chroot /host
 sh-4.4#
 ~~~
 
-And review the PVC created in the /var/hpvolumes director
+And review the PVC created in the /var/hpvolumes directory:
 
 ~~~bash
 sh-4.4# ls -l /var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb/disk.img
@@ -542,7 +556,7 @@ sh-4.4# file /var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb/disk.img
 /var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb/disk.img: DOS/MBR boot sector
 ~~~
 
-And don't forget to exit and terminate the debug pod.
+And don't forget to exit and terminate the debug pod:
 
 ~~~bash
 sh4.4# exit
