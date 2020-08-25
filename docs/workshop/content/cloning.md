@@ -233,19 +233,19 @@ centos8-server-nfs        7h39m   true
 
 $ oc get vmi
 NAME                      AGE    PHASE     IP                 NODENAME
-centos7-clone-nfs         103s   Running   192.168.47.22/24   cluster-august-lhrd5-worker-6w624
-centos8-server-hostpath   41m    Running   192.168.47.15/24   cluster-august-lhrd5-worker-6w624
-centos8-server-nfs        48m    Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+centos7-clone-nfs         103s   Running   192.168.47.7/24   cluster-august-lhrd5-worker-6w624
+centos8-server-hostpath   41m    Running   192.168.47.6/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs        48m    Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 And remember how we set a few things via cloud-init? Let's see if it worked and SSH to the IP of this newly created VM. Login as the `centos` user with the password `redhat`.
 
 ~~~bash
-$ ssh centos@192.168.47.22
-The authenticity of host '192.168.47.22 (192.168.47.22)' can't be established.
+$ ssh centos@192.168.47.7
+The authenticity of host '192.168.47.7 (192.168.47.7)' can't be established.
 ECDSA key fingerprint is SHA256:/tdwPiOJAUQ0c43P8nD2YIj49e07CGsNe2lp/TvHqHg.
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
-Warning: Permanently added '192.168.47.22' (ECDSA) to the list of known hosts.
+Warning: Permanently added '192.168.47.7' (ECDSA) to the list of known hosts.
 centos@192.168.47.22's password:
 
 [centos@centos7-clone-nfs ~]$
@@ -264,7 +264,7 @@ And check for the running nginx service:
 (...)
 ~~~
 
-Let's quickly verify that this is working as expected - you should be able to navigate directly to the IP address of your machine in your browser - recalling that in the example it's *192.168.47.22*:
+Let's quickly verify that this is working as expected - you should be able to navigate directly to the IP address of your machine in your browser - recalling that in the example it's *192.168.47.7*:
 
 > **NOTE**: You need to be using the browser you configured for the bastion's squid for this to work.
 
@@ -277,7 +277,7 @@ Remember to logout of your running VM:
 ~~~bash
 [centos@centos7-clone-nfs ~]$ exit
 logout
-Connection to 192.168.47.22 closed.
+Connection to 192.168.47.7 closed.
 $
 ~~~
 
@@ -290,13 +290,13 @@ $ virtctl stop centos7-clone-nfs
 VM centos7-clone-nfs was scheduled to stop
 ~~~
 
-And the VM **instance** IVMI) is removed:
+And the VM **instance** (VMI) is removed:
 
 ~~~bash
 $ oc get vmi
 NAME                      AGE     PHASE     IP                NODENAME
-centos8-server-hostpath   7h44m   Running   192.168.0.41/24   ocp-9pv98-worker-pj2dn
-centos8-server-nfs        8h      Running   192.168.0.28/24   ocp-9pv98-worker-pj2dn
+centos8-server-hostpath   7h44m   Running   192.168.0.6/24   ocp-9pv98-worker-pj2dn
+centos8-server-nfs        8h      Running   192.168.0.5/24   ocp-9pv98-worker-pj2dn
 ~~~
 
 But of course the VM still exists:
@@ -374,7 +374,9 @@ centos8-nfs         Bound    nfs-pv1                                    10Gi    
 
 ### Start the cloned VM
 
-Finally we can start up a new VM using the cloned PVC. A few things to note before we do this. We are going to name this VM `centos7-clone-dv` and it will use the `centos7-clone-dv` PVC we created in the previous steps which was cloned from the `centos7-clonenfs` machine. We are also, like our other VMs, setting the MAC address to a specific address. We are doing this to work witht he DHCP infrastructure in RHPDS. However, because this is a clone the config files for the interface contain the the previous hosts' MAC address, so we will need to manually correct this (it is, afterall, a clone!)
+Finally we can start up a new VM using the cloned PVC. A few things to note before we do this. We are going to name this VM `centos7-clone-dv` and it will use the `centos7-clone-dv` PVC we created in the previous steps which was cloned from the `centos7-clonenfs` machine. We are also, like our other VMs, setting the MAC address to a specific address. We are doing this to work within some limitations within RHPDS. 
+
+**Note>** You can find an external version of this yaml at [https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds/configs/centos7-clone-dv.yaml](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds/configs/centos7-clone-dv.yaml)
 
 First create the new VM:
 
@@ -423,6 +425,9 @@ spec:
              disk:
                bus: virtio
              name: disk0
+           - disk:
+               bus: virtio
+             name: cloudinitdisk
          interfaces:
            - bridge: {}
              macAddress: 'de:ad:be:ef:00:04'
@@ -445,24 +450,54 @@ spec:
        - name: disk0
          persistentVolumeClaim:
            claimName: centos7-clone-dv
+       - cloudInitNoCloud:
+           userData: |-
+             #cloud-config
+             password: redhat
+             chpasswd: {expire: False}
+             ssh_pwauth: 1
+             write_files:
+               - content: |
+                     # hi
+                     DEVICE=eth0
+                     HWADDR=de:ad:be:ef:00:04
+                     ONBOOT=yes
+                     TYPE=Ethernet
+                     USERCTL=no
+                     IPADDR=192.168.47.8
+                     PREFIX=24
+                     GATEWAY=192.168.47.1   
+                     DNS1=150.239.16.11
+                     DNS2=150.239.16.12
+                 path:  /etc/sysconfig/network-scripts/ifcfg-eth0
+                 permissions: '0644'
+             runcmd:
+               - [ systemctl, restart, network ]
+         name: cloudinitdisk
 EOF
 
 virtualmachine.kubevirt.io/centos7-clone-dv created
 ~~~
 
-After a few minutes you should see the new virtual machine running:
+After about 6 minutes you should see the new virtual machine running:
 
 ~~~bash
 $ oc get vmi
 NAME                      AGE    PHASE     IP                 NODENAME
-centos7-clone-dv          109s   Running                      cluster-august-lhrd5-worker-6w624
-centos8-server-hostpath   61m    Running   192.168.47.15/24   cluster-august-lhrd5-worker-6w624
-centos8-server-nfs        68m    Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+centos7-clone-dv          109s   Running   192.168.47.8/24   cluster-august-lhrd5-worker-6w624
+centos8-server-hostpath   61m    Running   192.168.47.6/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs        68m    Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
-Now, as mentioned, there is no IP assigned. This is due to a cloned NIC file. But that's cool, we got this. Let's fix it with some of the features of `virtctl`!
+Now, a quick note about the use of cloud-init for this VM and how it relates to the cloning. We're using cloud-init to change the NIC file on the clone. In this case we set the MAC address with OpenShift Virtualization using the interfaces block and setting `             macAddress: 'de:ad:be:ef:00:04'`. 
 
-Login to the newly running instance (it's a clone so the username and pasword are the same (centos/redhat):
+We then need to use cloud-init to create the NIC config file to match. If we did not, then OpenShift Virtualization would have assumed DHCP and used our new MAC as we saw in previous examples. So while even though it's a clone, the network settings would be cleared so the machine can be managed.
+
+But it IS a clone! And if you'll remember we installed podman and set up an NGINX server running on the source of this clone, so we'd expect to see those (and we did NOT set them with cloud-init).
+
+Wanna, see? Let use `virtctl` to login and check ...
+
+Login to the newly running instance (centos/redhat):
 
 ~~~bash
 $ virtctl console centos7-clone-dv
@@ -476,24 +511,12 @@ Password:
 Last login: Tue Jul 21 13:44:37 on ttyS0
 [centos@centos7-clone-nfs ~]$
 ~~~
-
-Notice the hostname? And if you look for the IP it will be unset:
-
-~~~bash
-[centos@centos7-clone-nfs ~]$ ip a
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
-       valid_lft forever preferred_lft forever
-2: eth0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
-    link/ether 42:8a:6f:75:d6:4e brd ff:ff:ff:ff:ff:ff
-~~~
-
-But this **is** a clone, and even ngnix is ready:
+And look for some of the features from the source:
 
 ~~~bash
+[centos@centos7-clone-dv ~]$ sudo rpm -qa | grep podman
+podman-1.6.4-18.el7_8.x86_64
+
 [centos@centos7-clone-nfs ~]$ sudo systemctl status nginx
 ● nginx.service - Nginx Podman container
    Loaded: loaded (/etc/systemd/system/nginx.service; enabled; vendor preset: disabled)
@@ -504,51 +527,9 @@ But this **is** a clone, and even ngnix is ready:
 (...)
 ~~~
 
-So let's fix this up. Simply edit `/etc/sysconfig/network-scripts/ifcfg-eth0` and remove the HWADDR line entirely.
+There the are! We have a Dolly (obscure sheep reference from the 90s and test to see if you are still paying attention - if you are send a sheep emoticon to the chat room for the course).
 
-~~~bash
-[centos@centos7-clone-nfs ~]$ cat /etc/sysconfig/network-scripts/ifcfg-eth0
-# Created by cloud-init on instance boot automatically, do not edit.
-#
-BOOTPROTO=dhcp
-DEVICE=eth0
-ONBOOT=yes
-TYPE=Ethernet
-USERCTL=no
-~~~
-
-And bring up the interface so the RHPDS infra can set it.
-
-~~~bash
-[centos@centos7-clone-nfs ~]$ sudo ifup eth0
-
-Determining IP information for eth0...[  510.913036] e1000: eth0 NIC Link is Up 1000 Mbps Full Duplex, Flow Control: RX
-[  510.936933] IPv6: ADDRCONF(NETDEV_UP): eth0: link is not ready
-[  510.946107] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
-
- done.
-[centos@centos7-clone-nfs ~]$
-~~~
-
-And the IP is now assigned
-
-~~~bash
-[centos@centos7-clone-nfs ~]$ ip a
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
-       valid_lft forever preferred_lft forever
-2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
-    link/ether de:ad:be:ef:00:04 brd ff:ff:ff:ff:ff:ff
-    inet 192.168.47.17/24 brd 192.168.47.255 scope global dynamic eth0
-       valid_lft 86398sec preferred_lft 86398sec
-    inet6 fe80::dcad:beff:feef:4/64 scope link
-       valid_lft forever preferred_lft forever
-~~~
-
-Exit the host 
+OK, go ahead and exit the host ...
 
 ~~~bash
 [centos@centos7-clone-nfs ~]$ exit
@@ -562,18 +543,16 @@ and check all is well with `oc`
 ~~~bash
 $ oc get vmi
 NAME                      AGE     PHASE     IP                 NODENAME
-centos7-clone-dv          3m57s   Running   192.168.47.17/24   cluster-august-lhrd5-worker-6w624
-centos8-server-hostpath   63m     Running   192.168.47.15/24   cluster-august-lhrd5-worker-6w624
-centos8-server-nfs        70m     Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+centos7-clone-dv          3m57s   Running   192.168.47.8/24   cluster-august-lhrd5-worker-6w624
+centos8-server-hostpath   63m     Running   192.168.47.6/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs        70m     Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
-### Test the clone
+### Test the clone some more!
 
-Connect your browser to IP on the DV clone (in this case that is: http://192.168.47.17 and you should find the **ngnix** server you configured on the original host, prior to the clone, pleasantly serving your request:
+Connect your browser to IP on the DV clone (in this case that is: http://192.168.47.8 and you should find the **ngnix** server you configured on the original host, prior to the clone, pleasantly serving your request:
 
 <img src="img/dv-clone-nginx.png"/>
-
-We can see the IP is different, but the old host name has peristed; welcome to clone club!
 
 That's it! You've proven that your clone has worked, and that the hostpath based volume is an identical copy of the original NFS-based one.
 
@@ -593,12 +572,12 @@ virtualmachine.kubevirt.io "centos7-clone-nfs" deleted
 ~~~bash
 $ oc get vmi
 NAME                      AGE     PHASE     IP                 NODENAME
-centos7-clone-dv          6m46s   Failed    192.168.47.17/24   cluster-august-lhrd5-worker-6w624
-centos8-server-hostpath   66m     Failed    192.168.47.15/24   cluster-august-lhrd5-worker-6w624
-centos8-server-nfs        73m     Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+centos7-clone-dv          6m46s   Failed    192.168.47.8/24   cluster-august-lhrd5-worker-6w624
+centos8-server-hostpath   66m     Failed    192.168.47.6/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs        73m     Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 
 $ oc get vmi
 NAME                 AGE   PHASE     IP                 NODENAME
-centos8-server-nfs   73m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs   73m   Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 ~~~
 

@@ -1,0 +1,91 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+ annotations:
+   kubevirt.io/latest-observed-api-version: v1alpha3
+   kubevirt.io/storage-observed-api-version: v1alpha3
+   name.os.template.kubevirt.io/centos7.0: CentOS 7
+ name: centos7-clone-dv
+ namespace: default
+ labels:
+   app: centos7-clone-dv
+   flavor.template.kubevirt.io/small: 'true'
+   os.template.kubevirt.io/rhel7.9: 'true'
+   vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+   vm.kubevirt.io/template.namespace: openshift
+   vm.kubevirt.io/template.revision: '1'
+   vm.kubevirt.io/template.version: v0.11.2
+   workload.template.kubevirt.io/server: 'true'
+spec:
+ running: true
+ template:
+   metadata:
+     creationTimestamp: null
+     labels:
+       flavor.template.kubevirt.io/small: 'true'
+       kubevirt.io/domain: centos7-clone-dv
+       kubevirt.io/size: small
+       os.template.kubevirt.io/centos7.0: 'true'
+       vm.kubevirt.io/name: centos7-clone-dv
+       workload.template.kubevirt.io/server: 'true'
+   spec:
+     domain:
+       cpu:
+         cores: 1
+         sockets: 1
+         threads: 1
+       devices:
+         disks:
+           - bootOrder: 1
+             disk:
+               bus: virtio
+             name: disk0
+           - disk:
+               bus: virtio
+             name: cloudinitdisk
+         interfaces:
+           - bridge: {}
+             macAddress: 'de:ad:be:ef:00:04'
+             model: e1000
+             name:  tuning-bridge-fixed
+         rng: {}
+       machine:
+         type: pc-q35-rhel8.2.0
+       resources:
+         requests:
+           memory: 2Gi
+     evictionStrategy: LiveMigrate
+     hostname: centos7-clone-dv
+     networks:
+       - multus:
+           networkName: tuning-bridge-fixed
+         name: tuning-bridge-fixed
+     terminationGracePeriodSeconds: 0
+     volumes:
+       - name: disk0
+         persistentVolumeClaim:
+           claimName: centos7-clone-dv
+       - cloudInitNoCloud:
+           userData: |-
+             #cloud-config
+             password: redhat
+             chpasswd: {expire: False}
+             ssh_pwauth: 1
+             write_files:
+               - content: |
+                     # hi
+                     DEVICE=eth0
+                     HWADDR=de:ad:be:ef:00:04
+                     ONBOOT=yes
+                     TYPE=Ethernet
+                     USERCTL=no
+                     IPADDR=192.168.47.8
+                     PREFIX=24
+                     GATEWAY=192.168.47.1   
+                     DNS1=150.239.16.11
+                     DNS2=150.239.16.12
+                 path:  /etc/sysconfig/network-scripts/ifcfg-eth0
+                 permissions: '0644'
+             runcmd:
+               - [ systemctl, restart, network ]
+         name: cloudinitdisk
