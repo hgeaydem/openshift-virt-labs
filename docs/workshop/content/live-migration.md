@@ -9,7 +9,7 @@ In our lab you should now have only one VM running. You can check that, and view
 ~~~bash
 $ oc get vmi
 NAME                 AGE   PHASE     IP                 NODENAME
-centos8-server-nfs   77m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs   77m   Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 In this example we can see the `centos8-server-nfs` instance is on `ocp-9pv98-worker-pj2dn`. As you may recall we deployed this instance with the `LiveMigrate` `evictionStrategy` strategy on an NFS-based, RWX-enabled PVC. You can also review the instance with `oc describe` to ensure it is enabled.
@@ -134,7 +134,7 @@ Finally view the `vmi` object and you can see the new underlying host:
 ~~~bash
 $ oc get vmi/centos8-server-nfs
 NAME                 AGE   PHASE     IP                 NODENAME
-centos8-server-nfs   81m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-mh52l
+centos8-server-nfs   81m   Running   192.168.47.5/24   cluster-august-lhrd5-worker-mh52l
 ~~~
 
 In the above example we have moved the VM from **cluster-august-lhrd5-worker-6w624** to **cluster-august-lhrd5-worker-mh52l** successfully.
@@ -174,9 +174,9 @@ $ oc describe vmi centos8-server-nfs | tail -n 50
     Version Id:      8
   Interfaces:
     Interface Name:  eth0
-    Ip Address:      192.168.47.34/24
+    Ip Address:      192.168.47.5/24
     Ip Addresses:
-      192.168.47.34/24
+      192.168.47.5/24
       fe80::dcad:beff:feef:1/64
     Mac:             de:ad:be:ef:00:01
     Name:            tuning-bridge-fixed
@@ -233,7 +233,7 @@ cluster-august-lhrd5-worker-mh52l   Ready    worker   5h38m   v1.18.3+b74c5ed
 
 $ oc get vmi
 NAME                 AGE   PHASE     IP                 NODENAME
-centos8-server-nfs   87m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-mh52
+centos8-server-nfs   87m   Running   192.168.47.5/24   cluster-august-lhrd5-worker-mh52
 ~~~
 
 In this environment, we have one virtual machine instance running on *cluster-august-lhrd5-worker-mh52*. Let's mark that node for maintenance and ensure that our workload (VMI) moves to the available node:
@@ -271,7 +271,7 @@ And let's check where our VM went:
 ~~~bash
 $ oc get vmi centos8-server-nfs
 NAME                 AGE   PHASE     IP                 NODENAME
-centos8-server-nfs   88m   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs   88m   Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 Success!
