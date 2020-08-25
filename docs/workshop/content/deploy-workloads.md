@@ -139,12 +139,12 @@ centos8-server-nfs   8s    Running         cluster-august-lhrd5-worker-6w62
 
 After a few minutes the machine will report its IP:
 
-> **NOTE**: Due to some environmental issues and an OpenStack Bug in OVN this will take around 6-7 minutes to report.
+> **NOTE**: Due to some environmental issues and an OpenStack Bug in OVN this will take around 2-3 minutes to report.
 
 ~~~bash
 $ oc get vmi
 NAME                 AGE    PHASE     IP                 NODENAME
-centos8-server-nfs   117s   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs   117s   Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 > **NOTE**: It may take a minute or two for the IP address to appear as it utilise the qemu-guest-agent which needs time to start up.
@@ -290,7 +290,7 @@ The key to this is the **"net1@if4"** device (it may be slightly different in yo
 ~~~bash
 $  oc get vmi
 NAME                 AGE     PHASE     IP                 NODENAME
-centos8-server-nfs   4m15s   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs   4m15s   Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
 Then connect to it and track back the link - here you'll need to adjust the commands below - if your veth pair on the pod side was **"net1@if4"** then the **ifindex** in the command below will be **"4"**, if it was **"net1@if5"** then **"ifindex"** will be **"5"** and so on...
@@ -347,6 +347,8 @@ Already on project "default" on server "https://172.30.0.1:443".
 ~~~
 
 Now that we have the NFS instance running, let's do the same for the **hostpath** setup we created. This is essentially the same as our NFS instance, except we reference the `rhel8-hostpath` PVC:
+
+> **NOTE**: To view this yaml outside the lab environment go to [https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/configs/centos8-server-hostpath.yaml](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/configs/centos8-server-hostpath.yaml)
 
 ~~~bash
 $ cat << EOF | oc apply -f -
@@ -420,12 +422,30 @@ spec:
             claimName: centos8-hostpath
         - cloudInitNoCloud:
             userData: |-
-              #cloud-config
-              password: redhat
-              chpasswd: {expire: False}
+                #cloud-config
+                password: redhat
+                chpasswd: {expire: False}
+                write_files:
+                  - content: |
+                      # hi
+                      DEVICE=eth0
+                      HWADDR=de:ad:be:ef:00:02
+                      ONBOOT=yes
+                      TYPE=Ethernet
+                      USERCTL=no
+                      IPADDR=192.168.47.6
+                      PREFIX=24
+                      GATEWAY=192.168.47.1   
+                      DNS1=150.239.16.11
+                      DNS2=150.239.16.12
+                    path:  /etc/sysconfig/network-scripts/ifcfg-eth0
+                    permissions: '0644'
+                runcmd:
+                  - ifdown eth0
+                  - ifup eth0
+                  - systemctl restart qemu-guest-agent.service
           name: cloudinitdisk
 EOF
-
 virtualmachine.kubevirt.io/centos8-server-hostpath created
 ~~~
 
@@ -439,8 +459,8 @@ virt-launcher-centos8-server-nfs-5d8zd        1/1     Running   0          7m4
 
 $  oc get vmi
 NAME                      AGE     PHASE     IP                 NODENAME
-centos8-server-hostpath   110s    Running   192.168.47.15/24   cluster-august-lhrd5-worker-6w624
-centos8-server-nfs        8m50s   Running   192.168.47.34/24   cluster-august-lhrd5-worker-6w624
+centos8-server-hostpath   110s    Running   192.168.47.6/24   cluster-august-lhrd5-worker-6w624
+centos8-server-nfs        8m50s   Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 
 ~~~
 
@@ -507,7 +527,7 @@ logout
 
 $ oc get vmi/centos8-server-hostpath
 NAME                      AGE     PHASE     IP                 NODENAME
-centos8-server-hostpath   3m34s   Running   192.168.47.15/24   cluster-august-lhrd5-worker-6w624
+centos8-server-hostpath   3m34s   Running   192.168.47.6/24   cluster-august-lhrd5-worker-6w624
 
 $ oc get pods | grep centos8-server-hostpath
 virt-launcher-centos8-server-hostpath-zpgwr   1/1     Running   0          3m49s
