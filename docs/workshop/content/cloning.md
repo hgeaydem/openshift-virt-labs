@@ -107,6 +107,8 @@ However we are going to run quite a bit more via cloud-init. This time we will d
 * install podman
 * set up an ngnix podman container to allow us to access a simple web page on the host
 
+**Note**> You can find this yaml outside the lab environment at [https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds/configs/centos7-clone-nfs.yaml](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds/configs/centos7-clone-nfs.yaml)
+
 ~~~bash
 $ cat << EOF | oc apply -f -
 apiVersion: kubevirt.io/v1alpha3
@@ -200,6 +202,24 @@ spec:
                      ExecStop=/usr/bin/podman stop --all
                      [Install]
                      WantedBy=multi-user.target
+               - content: |
+                     # hi
+                     DEVICE=eth0
+                     HWADDR=de:ad:be:ef:00:03
+                     ONBOOT=yes
+                     TYPE=Ethernet
+                     USERCTL=no
+                     IPADDR=192.168.47.7
+                     PREFIX=24
+                     GATEWAY=192.168.47.1   
+                     DNS1=150.239.16.11
+                     DNS2=150.239.16.12
+                 path:  /etc/sysconfig/network-scripts/ifcfg-eth0
+                 permissions: '0644'
+             runcmd:
+               - ifdown eth0
+               - ifup eth0
+               - systemctl restart qemu-guest-agent.service
          name: cloudinitdisk
 EOF
 

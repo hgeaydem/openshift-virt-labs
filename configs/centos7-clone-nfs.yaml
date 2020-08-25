@@ -1,0 +1,110 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+ annotations:
+   kubevirt.io/latest-observed-api-version: v1alpha3
+   kubevirt.io/storage-observed-api-version: v1alpha3
+   name.os.template.kubevirt.io/centos7.0: CentOS 7
+ name: centos7-clone-nfs
+ namespace: default
+ labels:
+   app: centos7-clone-nfs
+   flavor.template.kubevirt.io/small: 'true'
+   os.template.kubevirt.io/rhel7.9: 'true'
+   vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+   vm.kubevirt.io/template.namespace: openshift
+   vm.kubevirt.io/template.revision: '1'
+   vm.kubevirt.io/template.version: v0.11.2
+   workload.template.kubevirt.io/server: 'true'
+spec:
+ running: true
+ template:
+   metadata:
+     creationTimestamp: null
+     labels:
+       flavor.template.kubevirt.io/small: 'true'
+       os.template.kubevirt.io/rhel7.9: 'true'
+       vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+       vm.kubevirt.io/template.namespace: openshift
+       vm.kubevirt.io/template.revision: '1'
+       vm.kubevirt.io/template.version: v0.11.2
+   spec:
+     domain:
+       cpu:
+         cores: 1
+         sockets: 1
+         threads: 1
+       devices:
+         disks:
+           - bootOrder: 1
+             disk:
+               bus: virtio
+             name: disk0
+           - disk:
+               bus: virtio
+             name: cloudinitdisk
+         interfaces:
+           - bridge: {}
+             macAddress: 'de:ad:be:ef:00:03'
+             model: e1000
+             name:  tuning-bridge-fixed
+         rng: {}
+       machine:
+         type: pc-q35-rhel8.2.0
+       resources:
+         requests:
+           memory: 2Gi
+     evictionStrategy: LiveMigrate
+     hostname: centos7-clone-nfs
+     networks:
+       - multus:
+           networkName: tuning-bridge-fixed
+         name: tuning-bridge-fixed
+     terminationGracePeriodSeconds: 0
+     volumes:
+       - name: disk0
+         persistentVolumeClaim:
+           claimName: centos7-clone-nfs
+       - cloudInitNoCloud:
+           userData: |-
+             #cloud-config
+             password: redhat
+             chpasswd: {expire: False}
+             ssh_pwauth: 1
+             packages:
+               - podman
+             runcmd:
+               - [ systemctl, daemon-reload ]
+               - [ systemctl, enable, nginx ]
+               - [ systemctl, start, --no-block, nginx ]
+             write_files:
+               - path: /etc/systemd/system/nginx.service
+                 permissions: ‘0755’
+                 content: |
+                     [Unit]
+                     Description=Nginx Podman container
+                     Wants=syslog.service
+                     [Service]
+                     ExecStart=/usr/bin/podman run --net=host nginxdemos/hello
+                     ExecStop=/usr/bin/podman stop --all
+                     [Install]
+                     WantedBy=multi-user.target
+               - content: |
+                     # hi
+                     DEVICE=eth0
+                     HWADDR=de:ad:be:ef:00:03
+                     ONBOOT=yes
+                     TYPE=Ethernet
+                     USERCTL=no
+                     IPADDR=192.168.47.7
+                     PREFIX=24
+                     GATEWAY=192.168.47.1   
+                     DNS1=150.239.16.11
+                     DNS2=150.239.16.12
+                 path:  /etc/sysconfig/network-scripts/ifcfg-eth0
+                 permissions: '0644'
+             runcmd:
+               - ifdown eth0
+               - ifup eth0
+               - systemctl restart qemu-guest-agent.service
+         name: cloudinitdisk
