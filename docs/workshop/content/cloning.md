@@ -184,12 +184,6 @@ spec:
              password: redhat
              chpasswd: {expire: False}
              ssh_pwauth: 1
-             packages:
-               - podman
-             runcmd:
-               - [ systemctl, daemon-reload ]
-               - [ systemctl, enable, nginx ]
-               - [ systemctl, start, --no-block, nginx ]
              write_files:
                - path: /etc/systemd/system/nginx.service
                  permissions: ‘0755’
@@ -217,9 +211,11 @@ spec:
                  path:  /etc/sysconfig/network-scripts/ifcfg-eth0
                  permissions: '0644'
              runcmd:
-               - ifdown eth0
-               - ifup eth0
-               - systemctl restart qemu-guest-agent.service
+               - [ systemctl, restart, network ]
+               - [ yum, install, -y, podman ]
+               - [ systemctl, daemon-reload ]
+               - [ systemctl, enable, nginx ]
+               - [ systemctl, start, --no-block, nginx ]          
          name: cloudinitdisk
 EOF
 
