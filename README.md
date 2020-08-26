@@ -71,7 +71,7 @@ This allows you to connect a browser to local port 8080 and see the "Public" net
     <img src="docs/workshop/content/img/firefox-proxy.png"/>
 </center>
 
-3) Open the URL for the OpenShift Virtualization Lab Workbook in the browser you connected to the bastion (looks like https://cnv-workbook.apps.cluster-*UID*.dynamic.opentlc.com)
+3) Open the URL for the OpenShift Virtualization Lab Workbook using the browser you connected to the bastion (the "CNV Lab Workbook" value, which looks like https://cnv-workbook.apps.cluster-*UID*.dynamic.opentlc.com)
 
 >**NOTE**: You will need to accept the SSL warnings but you do not need to login to the workbook.
 
