@@ -2,15 +2,11 @@
 
 **Authors**: [Rhys Oxenham](mailto:roxenham@redhat.com) and [August Simonelli](mailto:asimonel@redhat.com)
 
-**PLEASE NOTE THIS LAB IS IS NOT YET AVAILABLE FOR USE IN RHPDS.**
+**PLEASE NOTE THIS LAB IS IS NOT YET AVAILABLE AS ON-DEMAND IN RHPDS.**
 
 # Welcome!
 
 Welcome to our hands-on OpenShift Virtualization lab for RHPDS. 
-
-You first need to deploy your lab through RHPDS. Once you do that you will receive full access details and instructions for your specific environment.
-
-To launch the lab in RHPDS ... TBA.
 
 > **NOTE**: We also have a branch that can be used on your own hardware which includes deployment scripts for a completely self-contained training. This is available from the [main branch of this lab's repo](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/master).
 
@@ -55,9 +51,9 @@ Within this environment you can access all aspects of the lab through the deploy
 
 ### Getting Started
 
-Your RHPDS email will provide full intructions for setting up your access including your unique username, UID, and passwords.
+RHPDS provides full intructions for setting up your access including your unique username, UID, and passwords.
 
-But for simplicity, you need to do only a few things:
+Here are the details to use them:
 
 1) SSH to the bastion host created for you and port forward your local hosts' port 8080 to the squid port on the bastion (3128)
 
