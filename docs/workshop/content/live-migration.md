@@ -240,7 +240,7 @@ In this environment, we have one virtual machine instance running on *cluster-au
 
 ~~~bash
 $ cat << EOF | oc apply -f -
-apiVersion: kubevirt.io/v1alpha1
+apiVersion: kubevirt.io/v1beta1
 kind: NodeMaintenance
 metadata:
   name: worker-maintenance
