@@ -94,7 +94,7 @@ In there you'll spot the interface that we'd like to use to create a bridge, `en
 
 Now let's create a policy to create a bridge on the nodes using this NIC. We want this to be on all workers, so we need to create a nodeSelector that ensure every worker is selected. We do that with `node-role.kubernetes.io/worker: ""` This applies the config to all worker nodes.
 
-However, be sure your using rhe right NIC naming, as it may change depending on environmental factors. You can easily use the Network Node State to find this, for instance in the example above you can check the available NICs like this
+However, be sure you're using the right NIC naming, as it *may* be different in your environment to the examples shown below. You can easily use the Node Network State to find this, for instance in the example above you can check the available NICs like this:
 
 ~~~bash
 $ oc get nns/cluster-august-lhrd5-worker-6w624 -o yaml | grep ens | grep name
@@ -109,7 +109,7 @@ $ oc get nns/cluster-august-lhrd5-worker-mh52l -o yaml | grep ens | grep name
 **With the above output we can see my NICs are ens3 and ens6. If you NICs are different, change the YAML below to reflect that.**
 
 ~~~bash
-$ cat << EOF | oc apply -f -
+$ cat << EOF > network-state.yaml
 apiVersion: nmstate.io/v1alpha1
 kind: NodeNetworkConfigurationPolicy
 metadata:
@@ -134,6 +134,10 @@ spec:
             - name: ens6 <---- CHANGE IF DIFFERENT NIC
 EOF
 
+$ vi network-state.yaml
+(change the port name entry if your system doesn't have ens6)
+
+$ oc apply -f network-state.yaml
 nodenetworkconfigurationpolicy.nmstate.io/br1-ens6-policy-workers created
 ~~~
 
