@@ -2,8 +2,6 @@
 
 **Authors**: [Rhys Oxenham](mailto:roxenham@redhat.com) and [August Simonelli](mailto:asimonel@redhat.com)
 
-**PLEASE NOTE THIS LAB IS IS NOT YET AVAILABLE AS ON-DEMAND IN RHPDS.**
-
 # Welcome!
 
 Welcome to our hands-on OpenShift Virtualization lab for RHPDS. 
@@ -58,7 +56,7 @@ Here are the details to use them:
 1) SSH to the bastion host created for you and port forward your local hosts' port 8080 to the squid port on the bastion (3128)
 
 ~~~bash
-$ ssh RHPDS-USERNAME@bastion.UID.dynamic.opentlc.com -L 8080:127.0.0.1:3128
+$ ssh RHPDS-USERNAME@bastion.UID.dynamic.opentlc.com -L 8080:localhost:3128
 ~~~
 
 This allows you to connect a browser to local port 8080 and see the "Public" network in the lab.
