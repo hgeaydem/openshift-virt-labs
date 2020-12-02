@@ -30,7 +30,7 @@ Next we need to deploy the rest of the OpenShift Virtualization components that 
 
 <img  border="1" src="img/ocp-virt-hco-1.png"/>
 
-From here, select '**Create Instance**' on the '**CNV Operator Deployment**' button. You'll be presented with the '**Create HyperConverged Cluster**' screen. This will deploy all of the necessary components that are required to support OpenShift Virtualization. Click the '**Create**' button.
+From here, select '**Create Instance**' on the '**OpenShift Virtualization Deployment**' button. You'll be presented with the '**Create HyperConverged Cluster**' screen. This will deploy all of the necessary components that are required to support OpenShift Virtualization. Click the '**Create**' button.
 
 <img  border="1" src="img/ocp-virt-hco-2.png"/>
 
