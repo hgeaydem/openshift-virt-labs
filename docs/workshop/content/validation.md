@@ -17,7 +17,7 @@ Next let's validate the version that we've got deployed, and the status of the c
 ~~~bash
 $  oc get clusterversion
 NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
-version   4.5.2     True        False         34m     Cluster version is 4.5.2
+version   4.6.4     True        False         34m     Cluster version is 4.6.4
 ~~~
 
 This cluster is a 4.5.2 deployment and is currently stable (i.e. it is **not** showing as "progessing"). Let's next review the cluster operators and their status. We should expect them to all be available and also not "progressing" or "degraded."
@@ -25,36 +25,36 @@ This cluster is a 4.5.2 deployment and is currently stable (i.e. it is **not** s
 ~~~bash
 $ oc get clusteroperators
 NAME                                       VERSION   AVAILABLE   PROGRESSING   DEGRADED   SINCE
-authentication                             4.5.2     True        False         False      35m
-cloud-credential                           4.5.2     True        False         False      64m
-cluster-autoscaler                         4.5.2     True        False         False      47m
-config-operator                            4.5.2     True        False         False      47m
-console                                    4.5.2     True        False         False      38m
-csi-snapshot-controller                    4.5.2     True        False         False      43m
-dns                                        4.5.2     True        False         False      61m
-etcd                                       4.5.2     True        False         False      60m
-image-registry                             4.5.2     True        False         False      43m
-ingress                                    4.5.2     True        False         False      43m
-insights                                   4.5.2     True        False         False      57m
-kube-apiserver                             4.5.2     True        False         False      59m
-kube-controller-manager                    4.5.2     True        False         False      59m
-kube-scheduler                             4.5.2     True        False         False      59m
-kube-storage-version-migrator              4.5.2     True        False         False      43m
-machine-api                                4.5.2     True        False         False      54m
-machine-approver                           4.5.2     True        False         False      59m
-machine-config                             4.5.2     True        False         False      46m
-marketplace                                4.5.2     True        False         False      42m
-monitoring                                 4.5.2     True        False         False      41m
-network                                    4.5.2     True        False         False      61m
-node-tuning                                4.5.2     True        False         False      61m
-openshift-apiserver                        4.5.2     True        False         False      46m
-openshift-controller-manager               4.5.2     True        False         False      56m
-openshift-samples                          4.5.2     True        False         False      46m
-operator-lifecycle-manager                 4.5.2     True        False         False      61m
-operator-lifecycle-manager-catalog         4.5.2     True        False         False      61m
-operator-lifecycle-manager-packageserver   4.5.2     True        False         False      41m
-service-ca                                 4.5.2     True        False         False      61m
-storage                                    4.5.2     True        False         False      56m
+authentication                             4.6.4     True        False         False      37m
+cloud-credential                           4.6.4     True        False         False      81m
+cluster-autoscaler                         4.6.4     True        False         False      77m
+config-operator                            4.6.4     True        False         False      78m
+console                                    4.6.4     True        False         False      34m
+csi-snapshot-controller                    4.6.4     True        False         False      78m
+dns                                        4.6.4     True        False         False      77m
+etcd                                       4.6.4     True        False         False      76m
+image-registry                             4.6.4     True        False         False      54m
+ingress                                    4.6.4     True        False         False      53m
+insights                                   4.6.4     True        False         False      78m
+kube-apiserver                             4.6.4     True        False         False      75m
+kube-controller-manager                    4.6.4     True        False         False      76m
+kube-scheduler                             4.6.4     True        False         False      75m
+kube-storage-version-migrator              4.6.4     True        False         False      68m
+machine-api                                4.6.4     True        False         False      74m
+machine-approver                           4.6.4     True        False         False      76m
+machine-config                             4.6.4     True        False         False      76m
+marketplace                                4.6.4     True        False         False      77m
+monitoring                                 4.6.4     True        False         False      53m
+network                                    4.6.4     True        False         False      79m
+node-tuning                                4.6.4     True        False         False      78m
+openshift-apiserver                        4.6.4     True        False         False      54m
+openshift-controller-manager               4.6.4     True        False         False      53m
+openshift-samples                          4.6.4     True        False         False      53m
+operator-lifecycle-manager                 4.6.4     True        False         False      77m
+operator-lifecycle-manager-catalog         4.6.4     True        False         False      76m
+operator-lifecycle-manager-packageserver   4.6.4     True        False         False      52m
+service-ca                                 4.6.4     True        False         False      78m
+storage                                    4.6.4     True        False         False      78m
 ~~~
 
 
