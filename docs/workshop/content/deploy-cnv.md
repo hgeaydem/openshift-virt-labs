@@ -61,8 +61,8 @@ You will know the process is complete when you can return to the terminal and se
 
 ~~~bash
 $ oc get csv -n openshift-cnv
-NAME                                      DISPLAY                    VERSION   REPLACES   PHASE
-kubevirt-hyperconverged-operator.v2.4.0   OpenShift Virtualization   2.4.0                Succeeded
+NAME                                      DISPLAY                    VERSION   REPLACES                                  PHASE
+kubevirt-hyperconverged-operator.v2.5.1   OpenShift Virtualization   2.5.1     kubevirt-hyperconverged-operator.v2.5.0   Succeeded
 ~~~
 
 If you do not see `Succeeded` in the `PHASE` column then the deployment may still be progressing, or has failed. You will not be able to proceed until the installation has been successful. Once the `PHASE` changes to `Succeeded` you can validate that the required resources and the additional components have been deployed across the nodes. First let's check the pods deployed in the `openshift-cnv` namespace:
