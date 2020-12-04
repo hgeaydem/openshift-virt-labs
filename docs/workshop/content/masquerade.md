@@ -50,7 +50,7 @@ metadata:
     app: centos7-masq
     flavor.template.kubevirt.io/small: 'true'
     os.template.kubevirt.io/rhel7.9: 'true'
-    vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+    vm.kubevirt.io/template: rhel7-server-small-v0.11.3
     vm.kubevirt.io/template.namespace: openshift
     vm.kubevirt.io/template.revision: '1'
     vm.kubevirt.io/template.version: v0.11.2
@@ -153,6 +153,10 @@ In this case the NIC config will have picked up the old MAC address from the clo
 
 So, as before use we can use `virtctl` to login (cloud-init on the original build will have ensured the login is enabled and this is possible) and adjust the eth0 config.
 
+> **NOTE**: If you are moving fast you'll see the machine booting when you run the following command!
+
+Login as centos/redhat
+
 ~~~bash
 $ virtctl console centos7-masq
 Successfully connected to centos7-masq console. The escape sequence is ^]
@@ -168,9 +172,19 @@ Last login: Wed Jul 22 01:36:32 on ttyS0
 
 First review the contents of `/etc/sysconfig/network-scripts/ifcfg-eth0`. You should see the configuration we created when we built the source VM.
 
-Replace the contents with something more generic:
+Use an editor and sudo and replace the contents with something more generic:
 
 ~~~bash
+DEVICE=eth0
+ONBOOT=yes
+TYPE=Ethernet
+BOOTPROTO=dhcp
+~~~
+
+So you have:
+
+~~~bash
+[centos@centos7-clone-nfs ~]$ cat /etc/sysconfig/network-scripts/ifcfg-eth0
 DEVICE=eth0
 ONBOOT=yes
 TYPE=Ethernet
@@ -218,7 +232,6 @@ centos7-clone-nfs login:
 
 As you can see the IP assigned to the NIC on the host is not the same as the one reported by OpenShift. Again, that is because the `oc` command is reporting the public IP which OpenShift is using to masqueade traffic behind.
 
-> **NOTE**: In previous versions of OpenShift Virtualization (2.3 and earlier) the *actual* IP on the VM (ie the one assigend to the NIC) was reported. This was corrected via Bug [1795889](https://bugzilla.redhat.com/show_bug.cgi?id=1795889) and is no longer the case.
 
 ## Exposing the VM to the outside world
 
@@ -254,11 +267,15 @@ NAME                        HOST/PORT                                           
 centos7-masq-externalport   centos7-masq-externalport-default.apps.cluster-august.students.osp.opentlc.com          centos7-masq-externalport   <all>   edge          Non
 ~~~
 
-You can now visit that endpoint via an HTTPS connection (ie, in this example it is https://centos7-masq-externalport-default.apps.cluster-august.students.osp.opentlc.com) in a browser and should find the NGINX server from your Centos based VM running behind an TLS encrypted endpoint.
+You can now visit that endpoint via an HTTPS connection in any browser (it does not need to be your proxied connection as this is simply OpenShift exposing a route as normal, it just happens to be to the VM!) and should find the NGINX server from your Centos based VM running behind an TLS encrypted endpoint.
 
 <img src="img/centos7-masq-nginx2.png"/>
 
-> **NOTE**: If you get an "Application is not available" message, make sure that you're accessing the route with **https** - the router performs TLS termination for us, and therefore there's not actually anything listening on port 80 on the outside world, it just forwards 443 (OpenShift ingress) -> 80 (pod).
+Did you see an Application not available error?
+
+<img src="img/masq-not-avail.png"/>
+
+If you get the "**Application is not available**" message, **make sure that you're accessing the route with https** - the router performs TLS termination for us, and therefore there's not actually anything listening on port 80 on the outside world, it just forwards 443 (OpenShift ingress) -> 80 (pod).**
 
 As you can see, NGINX is there and we can see the internal IP assigned to eth0 on the host.
 
