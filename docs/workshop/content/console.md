@@ -6,6 +6,8 @@ In these labs you've used both `virtctl`, the OpenShift Virtualization client, a
 
 However, the need for an easy to use, developer friendly user experience is also a key value for OpenShift and OpenShift Virtualization. Let's take a look at some of the outcomes and actions from the previous labs and how they can be achived and used from within OpenShift's exceptional UI.
 
+You may find this lab hard to see in the lab environment. To avoid this the lab is available on github here: [https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/console.md](https://github.com/RHFieldProductManagement/openshift-virt-labs/blob/rhpds/docs/workshop/content/console.md)
+
 ## Connecting to the console
 As you know you can view the OpenShift console (its User Interface, UI) by clicking on the "Console" link in the lab's environment:
 
@@ -63,7 +65,7 @@ Following on from here, select the link for `disk-0` under the PVC label:
 
 Here we can see and edit all the features of the PVC we assigned for this pod.
 
-<img src="img/ui/ui-10.png"/>
+<img src="img/ui/ui-10-1.png"/>
 
 Now, under the "**Storage**" menu on the left, choose "**Persistent Volumes**" and you'll see the storage setup we created previously.
 
@@ -117,11 +119,15 @@ And then select the "**Create**" option.
 
 You now have an unbound volume ready for a PVC utilising CDI. 
 
-Choose "**Storage**" and then "**Persistent Volume Claims**" and select "**Create Persistent Volume Claim**" from the upper right:
+Choose "**Storage**" and then "**Persistent Volume Claims**" and select "**Create Persistent Volume Claim** and choose **With Form** from the drop down.
 
-<img src="img/ui/ui-15.png"/>
+<img src="img/ui/ui-15-1.png"/>
 
-Let's go ahead and enter the details for the PVC directly as YAML. Choose the "**Edit YAML**" option at the top and place the details into the editor:
+Let's go ahead and enter the details for the PVC directly as YAML. Choose the "**Edit YAML**" option at the top:
+
+<img src="img/ui/ui-15-2.png"/>
+ 
+And place the details into the editor:
 
 ~~~bash
 apiVersion: v1
@@ -167,31 +173,32 @@ We will utilize the networking constructs we built in the previous labs, which c
 
 With all the pieces now in place we are ready to create our VM with the UI. 
 
-Go to "**Workloads**" and choose "**Virtualization**". You'll see your running VMs (if you don't check you are in the right namespace using the namespace selector at the top of the screen) and a big blue "**Create VIrtual Machine**" option. Select the downward-facing arrow on that button and choose "**New with Wizard**"
+Go to "**Workloads**" and choose "**Virtualization**". You'll see your running VMs and a big blue "**Create VIrtual Machine**" option. Select the downward-facing arrow on that button and choose "**New with Wizard**"
+
+**Note**> If you don't see your VMs, check you are in the right namespace using the namespace selector at the top of the screen.
 
 <img src="img/ui/ui-19.png"/>
 
 This brings up a an easy to follow wizard to launch the VM:
 
-<img src="img/ui/ui-20.png"/>
+<img src="img/ui/ui-20-1.png"/>
 
 Fill out the **General** page with the following details:
 
 * **Name**: Choose an obvious name, here we just went with "centos7-ui-vm"
 * **Description**: Something to help you remember this moment
-* **Template**: We don't need to select a template for this VM
-* **Source**: Choose *Disk* as we are going to select our prepared and imported PVC (we do this in a later screen)
 * **Operating System**: "Red Hat Enterprise Linux 7.0 or higher" is fine for CentOS 7 :)
+* **Boot Source**: Choose *Existing PVC (adds disk)* as we are going to select our prepared and imported PVC (we do this in a later screen)
 * **Flavor**: Choose "Small" to match our other VMs.
 * **Workload Profile**: Choose "Server" to match our other VMs.
 
-<img src="img/ui/ui-21.png"/>
+<img src="img/ui/ui-21-1.png"/>
 
 Click **Next**.
 
 Fill out the **Networking** page.
 
-As mentioned we are again going to use the bridge we created on the workers to access the external network. Choose the three vertical dots next to the nic-0 (ie first) adapater and select **Edit**
+We are again going to use the bridge we created on the workers to access the external network. Choose the three vertical dots next to the nic-0 (ie first) adapater and select **Edit**
 
 <img src="img/ui/ui-22.png"/>
 
@@ -208,17 +215,17 @@ You are now on the **Disks** setup.
 
 Choose "**Add Disk**" and fill out as follows:
 
-* Set **Source** to "Attach Disk" so we can use an already created disk (our PVC!)
+* Set **Source** to "Use an existing PVC" so we can use an already created disk (our PVC!)
 * Set **Persistent Volume Claim** to the "centos7-ui-nfs" PVC we created and loaded with Centos7!
-* Leave **Name** and **Interface** as the defaults
+* Leave **Name** and **Interface** and **Type** as they are
 
-<img src="img/ui/ui-24.png"/>
+<img src="img/ui/ui-24-1.png"/>
 
 Choose **Add**.
 
 Before clicking **Next** ensure you set the "**Boot Source**" to "disk-0" so we use our OS-filled PVC to boot.
 
-<img src="img/ui/ui-25.png"/>
+<img src="img/ui/ui-25-1.png"/>
 
 Choose **Next** to move to the "**Advanced**" section.
 
@@ -265,15 +272,13 @@ runcmd:
   - [ systemctl, start, --no-block, nginx ]  
 ~~~
 
-<img src="img/ui/ui-26a.png"/>
+<img src="img/ui/ui-26-1.png"/>
 
 Next select "**Next**" to move to the next screen.
 
-There is no "**Virtual Hardware**" to add, so simplu click "**Next**" again at this screen.
-
 You can now "**Review and confirm your settings**" 
 
-<img src="img/ui/ui-27.png"/>
+<img src="img/ui/ui-27-1.png"/>
 
 For the moment, leave the "**Start virtual machine on creation**" **_UNTICKED_**. This prevents the VMI from starting.
 
@@ -281,7 +286,7 @@ For the moment, leave the "**Start virtual machine on creation**" **_UNTICKED_**
 
 Select "**See virtual machine details**" to review the machine's details.
 
-As a side note, jump back to the terminal and run `oc get vm` and `oc get vmi` right now:
+As a neat reminder of the difference between **vm** and **vmi** go ahead and jump back to the terminal and run `oc get vm` and `oc get vmi` right now:
 
 ~~~bash
 [~] $ oc get vm
@@ -295,15 +300,15 @@ centos7-masq         142m   Running   10.131.0.16        cluster-august-mssw8-wo
 centos8-server-nfs   3h4m   Running   192.168.47.5/24   cluster-august-mssw8-worker-6cpjw
 ~~~
 
-Have a look around before starting the VM!
+If you want now is the time to have a look around the UI before starting the VM!
 
 When ready, go back to the console and under the new VM's "**Details**" page select "**Actions**" -> "**Start Virtual Machine**"
 
-<img src="img/ui/ui-29.png"/>
+<img src="img/ui/ui-29-1.png"/>
 
 **The VM will start!**
 
-**Note>** It will take 6-7 minutes due to the environmental restrictions in RHPDS. The console will reflect this with the following message as Centos waiys for the NIC to timeout and be configured: `[**    ] A start job is running for LSB: Bri...n networking (1min 3s / 5min 5s)`
+> **NOTE**: It will take 6-7 minutes due to the environmental restrictions in RHPDS. The console will reflect this with the following message as Centos waiys for the NIC to timeout and be configured: `[**    ] A start job is running for LSB: Bri...n networking (1min 3s / 5min 5s)`
 
 You can watch this process from a number of areas, check the "Console" and "Events" tabs for a start.
 
@@ -313,11 +318,11 @@ You can watch this process from a number of areas, check the "Console" and "Even
 
 Eventually the VMI is shown as running on the "**Details**" page:
 
-<img src="img/ui/ui-32.png"/>
+<img src="img/ui/ui-32-1.png"/>
 
 Give it a few minutes more and the node's "public" IP address will report as well:
 
-<img src="img/ui/ui-33.png"/>
+<img src="img/ui/ui-33-1.png"/>
 
 You can now use that to connect to the running NGINX (thanks to cloud-init) via your bastion-connected browser or SSH to the machine from the lab's terminal! (login with centos/redhat as per cloud-init!)
 
@@ -360,8 +365,8 @@ Why not try some/all/none of the following?!:
 
 Thanks for participating in our lab. We hope you found it informative and educational!
 
-As mentioned, if you have found errors or omissions we want to know about them and fix them! Submit your pull requests to the [RHPDS branch](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds) or email (field-engagement@redhat.com) the team directly so we can work together!
+As mentioned, if you have found errors or omissions we want to know about them and fix them! Submit your pull requests to the [RHPDS branch](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/rhpds) or email the team directly (field-engagement@redhat.com) so we can work together!
 
 _Any and all feedback is warmly welcomed and appreciated!_
 
-**Happy Virtualizing!**
+**Happy Virtualizing** and **Virtualising** from your friends around the world!
