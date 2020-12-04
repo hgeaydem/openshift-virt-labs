@@ -1,3 +1,31 @@
+## Lab Prep
+
+Before you start this lab you'll need to do a few things. Since we are deploying a secondary "public" network with a non-routable range (192.168.47.0/24) due to environmental requirements within RHPDS we need a way to connect to it to demonstrate how this would work in a real data center deployment. 
+
+To do this we have installed a proxy server on the bastion that you can use to access this network. To use it you need to follow the following steps:
+
+1) SSH to the bastion host created for you and port forward your local hosts' port 8080 to the squid port on the bastion (3128)
+
+~~~bash
+$ ssh RHDPS_USER@bastion.UID.green.osp.opentlc.com -L 8080:localhost:3128
+~~~
+
+This allows you to connect a browser to local port 8080 and see the "Public" network in the lab.
+
+>**NOTE**: Full SSH connection details, including username, hostname, and password are in the RHPDS email.
+
+2) Set your browser (we've tested Firefox and had the most success with this - your mileage may vary with other browsers) to use localhost:8080 for all protocols, and make sure you enable DNS over SOCKSv5 - this avoids any challenges with local DNS:
+
+<center>
+    <img src="./img/firefox-proxy.png"/>
+</center>
+
+When this is done, any requests made via that proxied browser for 192.168.47.0/24 addresses will be answered by the lab environment.
+
+> **NOTE**: These steps are important for both this lab and a future one; please ensure they complete correctly.
+
+## Now on to the Lab!
+
 In this lab we're going to clone a workload and prove that it's identical to the previous. For fun, we will use a Centos 7 image for this work. We're going to download and customise the image, launch a virtual machine via OpenShift Virtualization based on it, and then clone it - we'll then test to see if the cloned machine works as expected. 
 
 Let's begin by checking we have a availale PV for this work:
@@ -11,7 +39,7 @@ pvc-11b35321-1aa4-4723-a436-66591f81417c   100Gi      RWO            Delete     
 pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb   29Gi       RWO            Delete           Bound       default/centos8-hostpath                          hostpath-provisioner            147m
 ~~~
 
-You should have a PV (likely nfs-pv2, but it doesn't have to be) marked as `Available`.
+You should have a PV (may be either nfs-pv1 or nfs-pv2) marked as `Available`.
 
 Next we will create a PVC for that PV that utilises the CDI utility to import a Centos 7 image (from http://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2). The syntax should be familiar to you now with the `cdi.kubevirt.io/storage.import.endpoint` annotation indicating the endpoint for CDI to import from.
 
@@ -48,7 +76,7 @@ virt-launcher-centos8-server-hostpath-zpgwr   1/1     Running   0          35m
 virt-launcher-centos8-server-nfs-5d8zd        1/1     Running   0          42m
 ~~~
 
-Be fast!
+**Be fast! This happens quicker than with the RHEL images!**
 
 ~~~bash
 $ oc logs -f importer-centos7-clone-nfs
@@ -124,7 +152,7 @@ metadata:
    app: centos7-clone-nfs
    flavor.template.kubevirt.io/small: 'true'
    os.template.kubevirt.io/rhel7.9: 'true'
-   vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+   vm.kubevirt.io/template: rhel7-server-small-v0.11.3
    vm.kubevirt.io/template.namespace: openshift
    vm.kubevirt.io/template.revision: '1'
    vm.kubevirt.io/template.version: v0.11.2
@@ -137,7 +165,7 @@ spec:
      labels:
        flavor.template.kubevirt.io/small: 'true'
        os.template.kubevirt.io/rhel7.9: 'true'
-       vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+       vm.kubevirt.io/template: rhel7-server-small-v0.11.3
        vm.kubevirt.io/template.namespace: openshift
        vm.kubevirt.io/template.revision: '1'
        vm.kubevirt.io/template.version: v0.11.2
@@ -264,13 +292,11 @@ And check for the running nginx service:
 (...)
 ~~~
 
-Let's quickly verify that this is working as expected - you should be able to navigate directly to the IP address of your machine in your browser - recalling that in the example it's *192.168.47.7*:
+Let's quickly verify that this is working as expected - you should be able to navigate directly to the IP address of your machine in your proxy connected browser you prepared in the lab prep section above - recalling that in the example it's *192.168.47.7*:
 
-> **NOTE**: You need to be using the browser you configured for the bastion's squid for this to work.
+> **REMINDER:** You need to be using the browser you configured for the bastion's squid for this to work.
 
 <img src="img/centos7-clone-nginx2.png"/>
-
-> **NOTE**: These steps are important for both this lab and a future one; please ensure they complete correctly.
 
 Remember to logout of your running VM:
 
@@ -298,6 +324,8 @@ NAME                      AGE     PHASE     IP                NODENAME
 centos8-server-hostpath   7h44m   Running   192.168.0.6/24   ocp-9pv98-worker-pj2dn
 centos8-server-nfs        8h      Running   192.168.0.5/24   ocp-9pv98-worker-pj2dn
 ~~~
+
+> **NOTE:** Don't worry if you see the VMI go into a `Failed` state. It's just shutting down. Rerun the command until it is gone.
 
 But of course the VM still exists:
 
@@ -396,7 +424,7 @@ metadata:
    app: centos7-clone-dv
    flavor.template.kubevirt.io/small: 'true'
    os.template.kubevirt.io/rhel7.9: 'true'
-   vm.kubevirt.io/template: rhel7-server-small-v0.7.0
+   vm.kubevirt.io/template: rhel7-server-small-v0.11.3
    vm.kubevirt.io/template.namespace: openshift
    vm.kubevirt.io/template.revision: '1'
    vm.kubevirt.io/template.version: v0.11.2
@@ -479,7 +507,7 @@ EOF
 virtualmachine.kubevirt.io/centos7-clone-dv created
 ~~~
 
-After about 6 minutes you should see the new virtual machine running:
+After 5-10 minutes you should see the new virtual machine running and IP allocated:
 
 ~~~bash
 $ oc get vmi
@@ -495,7 +523,7 @@ We then need to use cloud-init to create the NIC config file to match. If we did
 
 But it IS a clone! And if you'll remember we installed podman and set up an NGINX server running on the source of this clone, so we'd expect to see those (and we did NOT set them with cloud-init).
 
-Wanna, see? Let use `virtctl` to login and check ...
+Wanna see? Let use `virtctl` to login and check ...
 
 Login to the newly running instance (centos/redhat):
 
@@ -527,7 +555,7 @@ podman-1.6.4-18.el7_8.x86_64
 (...)
 ~~~
 
-There the are! We have a Dolly (obscure sheep reference from the 90s and test to see if you are still paying attention - if you are send a sheep emoticon to the chat room for the course).
+There they are! Artefacts from the cloned server! We have a clone! And you got to use `virtctl` in a new way. Neat!
 
 OK, go ahead and exit the host ...
 
@@ -567,7 +595,7 @@ virtualmachine.kubevirt.io "centos8-server-hostpath" deleted
 virtualmachine.kubevirt.io "centos7-clone-nfs" deleted
 ~~~
 
-> **NOTE**: If you check `oc get vmi` too quickly (example below) you might see the VMs in a `Failed` state. This is normal and when you check again they should disappear accordingly.
+> **NOTE**: And remember, if you check `oc get vmi` too quickly (shown in the example below) you might see the VMs in a `Failed` state. This is normal and when you check again they should disappear accordingly.
 
 ~~~bash
 $ oc get vmi
