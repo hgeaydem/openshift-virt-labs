@@ -11,7 +11,7 @@ metadata:
     app: centos8-nfs
     flavor.template.kubevirt.io/small: 'true'
     os.template.kubevirt.io/rhel8.2: 'true'
-    vm.kubevirt.io/template: rhel8-server-small-v0.10.0
+    vm.kubevirt.io/template: rhel8-server-small-v0.11.3
     vm.kubevirt.io/template.namespace: openshift
     vm.kubevirt.io/template.revision: '1'
     vm.kubevirt.io/template.version: v0.11.2
@@ -24,7 +24,7 @@ spec:
       labels:
         flavor.template.kubevirt.io/small: 'true'
         os.template.kubevirt.io/rhel8.2: 'true'
-        vm.kubevirt.io/template: rhel8-server-small-v0.10.0
+        vm.kubevirt.io/template: rhel8-server-small-v0.11.3
         vm.kubevirt.io/template.namespace: openshift
         vm.kubevirt.io/template.revision: '1'
         vm.kubevirt.io/template.version: v0.11.2

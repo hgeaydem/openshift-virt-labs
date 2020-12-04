@@ -38,7 +38,7 @@ metadata:
     app: centos8-nfs
     flavor.template.kubevirt.io/small: 'true'
     os.template.kubevirt.io/rhel8.2: 'true'
-    vm.kubevirt.io/template: rhel8-server-small-v0.10.0
+    vm.kubevirt.io/template: rhel8-server-small-v0.11.3
     vm.kubevirt.io/template.namespace: openshift
     vm.kubevirt.io/template.revision: '1'
     vm.kubevirt.io/template.version: v0.11.2
@@ -51,7 +51,7 @@ spec:
       labels:
         flavor.template.kubevirt.io/small: 'true'
         os.template.kubevirt.io/rhel8.2: 'true'
-        vm.kubevirt.io/template: rhel8-server-small-v0.10.0
+        vm.kubevirt.io/template: rhel8-server-small-v0.11.3
         vm.kubevirt.io/template.namespace: openshift
         vm.kubevirt.io/template.revision: '1'
         vm.kubevirt.io/template.version: v0.11.2
@@ -139,7 +139,7 @@ centos8-server-nfs   8s    Running         cluster-august-lhrd5-worker-6w62
 
 After a few minutes the machine will report its IP:
 
-> **NOTE**: Due to some environmental issues and an OpenStack Bug in OVN this will take around 2-3 minutes to report.
+> **NOTE**: Due to some environmental issues this will take around 2-3 minutes to report.
 
 ~~~bash
 $ oc get vmi
@@ -147,7 +147,7 @@ NAME                 AGE    PHASE     IP                 NODENAME
 centos8-server-nfs   117s   Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
-> **NOTE**: It may take a minute or two for the IP address to appear as it utilise the qemu-guest-agent which needs time to start up.
+> **REMINDER**: It may take a short while for the IP address to appear as it utilise the qemu-guest-agent which needs time to start up.
 
 OpenShift spawns a pod that manages the provisioning of the virtual machine in our environment, known as the `virt-launcher`:
 
@@ -166,7 +166,7 @@ Labels:       flavor.template.kubevirt.io/small=true
               kubevirt.io=virt-launcher
               kubevirt.io/created-by=77a2be98-6efa-4ce8-baac-796fc9ef31ae
               os.template.kubevirt.io/rhel8.2=true
-              vm.kubevirt.io/template=rhel8-server-small-v0.10.0
+              vm.kubevirt.io/template=rhel8-server-small-v0.11.3
               vm.kubevirt.io/template.namespace=openshift
               vm.kubevirt.io/template.revision=1
               vm.kubevirt.io/template.version=v0.11.2
@@ -365,7 +365,7 @@ metadata:
     app: centos8-server-hostpath
     flavor.template.kubevirt.io/small: 'true'
     os.template.kubevirt.io/rhel8.2: 'true'
-    vm.kubevirt.io/template: rhel8-server-small-v0.10.0
+    vm.kubevirt.io/template: rhel8-server-small-v0.11.3
     vm.kubevirt.io/template.namespace: openshift
     vm.kubevirt.io/template.revision: '1'
     vm.kubevirt.io/template.version: v0.11.2
@@ -378,7 +378,7 @@ spec:
       labels:
         flavor.template.kubevirt.io/small: 'true'
         os.template.kubevirt.io/rhel8.2: 'true'
-        vm.kubevirt.io/template: rhel8-server-small-v0.10.0
+        vm.kubevirt.io/template: rhel8-server-small-v0.11.3
         vm.kubevirt.io/template.namespace: openshift
         vm.kubevirt.io/template.revision: '1'
         vm.kubevirt.io/template.version: v0.11.2
