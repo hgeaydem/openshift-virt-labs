@@ -1,31 +1,3 @@
-## Lab Prep
-
-Before you start this lab you'll need to do a few things. Since we are deploying a secondary "public" network with a non-routable range (192.168.47.0/24) due to environmental requirements within RHPDS we need a way to connect to it to demonstrate how this would work in a real data center deployment. 
-
-To do this we have installed a proxy server on the bastion that you can use to access this network. To use it you need to follow the following steps:
-
-1) SSH to the bastion host created for you and port forward your local hosts' port 8080 to the squid port on the bastion (3128)
-
-~~~bash
-$ ssh RHDPS_USER@bastion.UID.green.osp.opentlc.com -L 8080:localhost:3128
-~~~
-
-This allows you to connect a browser to local port 8080 and see the "Public" network in the lab.
-
->**NOTE**: Full SSH connection details, including username, hostname, and password are in the RHPDS email.
-
-2) Set your browser (we've tested Firefox and had the most success with this - your mileage may vary with other browsers) to use localhost:8080 for all protocols, and make sure you enable DNS over SOCKSv5 - this avoids any challenges with local DNS:
-
-<center>
-    <img src="./img/firefox-proxy.png"/>
-</center>
-
-When this is done, any requests made via that proxied browser for 192.168.47.0/24 addresses will be answered by the lab environment.
-
-> **NOTE**: These steps are important for both this lab and a future one; please ensure they complete correctly.
-
-## Now on to the Lab!
-
 In this lab we're going to clone a workload and prove that it's identical to the previous. For fun, we will use a Centos 7 image for this work. We're going to download and customise the image, launch a virtual machine via OpenShift Virtualization based on it, and then clone it - we'll then test to see if the cloned machine works as expected. 
 
 Let's begin by checking we have a availale PV for this work:

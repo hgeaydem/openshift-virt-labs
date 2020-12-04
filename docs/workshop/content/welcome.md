@@ -6,20 +6,21 @@ Welcome to the OpenShift Virtualization self-paced lab on Red Hat Product Demo S
 
 In these labs you'll utilise a virtual environment that mimics, as close as (feasibly) possible, to a real baremetal OpenShift 4.6 deployment, although in this configuration we're using OpenShift on OpenStack given that RHPDS is driving the deployment. This will help get you up to speed with the concepts of OpenShift Virtualization. In this hands-on lab you won't need to deploy OpenShift as you'll have access to a freshly deployed cluster, ready to be configured and used with OpenShift Virtualization.
 
-This is the self-hosted lab guide that will run you through the following:
+This is the self-hosted lab guide that will run you through the following topics:
 
 * **Validating the OpenShift deployment**
 * **Deploying OpenShift Virtualization**
 * **Setting up Storage for OpenShift Virtualization**
 * **Setting up Networking for OpenShift Virtualization**
-* **Deploying some Test Workloads**
+* **Deploying Test Workloads]**
 * **Cloning Workloads**
 * **Performing Live Migrations and Node Maintenance**
-* **Utilising network masquerading on pod networking for VM's**
+* **Utilising pod networking for VM's**
+* **Using the OpenShift Web Console with OpenShift Virtualization** 
 
 ## Lab Setup
 
-The lab can almost entirely be run from within the hosted lab environment you are reading this from now, but there are some additional steps that we need to use a proxy server for, so the first task below is to set up some port forwarding from your local machine to the proxy server we've got setup in your dedicated environment. The lab environment that you're using now provides both a CLI with the tools you need (oc, virtctl) as well as access to the OpenShift console as a privileged user. Switching between the console and the CLI enviornment is easy. At the top middle of the lab guide you'll find a link to switch between the "**Terminal**" and the "**Console**".
+The lab be run from within the hosted lab environment you are reading this from now. The lab environment that you're using now provides both a CLI with the tools you need (oc, virtctl) as well as access to the OpenShift console as a privileged user. Switching between the console and the CLI enviornment is easy. At the top middle of the lab guide you'll find a link to switch between the "**Terminal**" and the "**Console**".
 
 <img src="img/console-button.png"/>
 
