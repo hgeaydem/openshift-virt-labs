@@ -55,6 +55,8 @@ Next we will create some NFS-backed persistent volumes (PVs) for our VM persiste
 
 We have deployed a simple NFS server to the RHPDS bastion host. This is the same machine you connected to as lab-user to port forward for the squid. The NFS server is sharing four directories on that host. You can view the setup directly on that bastion (not from within the lab environment's CLI):
 
+> **REMINDER**: You can find your bastion's access details in your RHPDS welcome email.
+
 ~~~bash
 [lab-user@bastion ~]$ ls -l /mnt/nfs/
 total 0
@@ -190,7 +192,7 @@ NAME                   READY   STATUS              RESTARTS   AGE
 importer-centos8-nfs     0/1     ContainerCreating   0          1s
 ~~~
 
-Watch the logs and you can see the process. The image is imported into the PV which is sitting on our NFS share. Watch the logs and wait a few minutes for the import to register Complete:
+Once the containers status moves from **ContainerCreating** to **Running** you can watch the logs and you see the import process. The image is imported into the PV which is sitting on our NFS share. Watch the logs and wait a few minutes for the import to register Complete:
 
 ~~~bash
 $ oc logs importer-centos8-nfs -f
@@ -223,7 +225,7 @@ I0721 02:05:02.280048       1 data-processor.go:205] New phase: Complete
 I0721 02:05:02.280128       1 importer.go:160] Import complete
 ~~~
 
-If you're quick, you can view the structure of the importer pod in another window to get some of the configuration it's using:
+While you wait you can view the structure of the importer pod to see some of the configuration it's using:
 
 ~~~bash
 $ oc describe pod $(oc get pods | awk '/importer/ {print $1;}')
@@ -384,6 +386,8 @@ $ oc get machineconfigpool worker -o=jsonpath="{.status.conditions[?(@.type=='Up
 True
 ~~~
 
+> **NOTE**: If you lose connectivity entirely and the app appears to vanish (ie Application is not available for the whole environment) please be patient. You can also monitor the progress by issuing `oc` commands on the bastion. Once both workers are `Ready` you can refresh your main lab URL and continue.
+
 Now we can set the HostPathProvisioner configuration itself, i.e. telling the operator what path to actually use - the systemd file we just applied merely ensures that the directory is present and has the correct SELinux labels applied to it:
 
 ~~~bash
@@ -405,10 +409,10 @@ hostpathprovisioner.hostpathprovisioner.kubevirt.io/hostpath-provisioner created
 When you've applied this config, an additional pod will be spawned on each of the worker nodes; this pod is responsible for managing the hostpath access on the respective host; note the shorter age (42s in the example below):
 
 ~~~bash
-$ oc get pods -n openshift-cnv | grep hostpath
-hostpath-provisioner-dzgjz                         1/1     Running           0          12s
-hostpath-provisioner-kv8qw                         1/1     Running           0          12s
-hostpath-provisioner-operator-8f985f9-sln69        1/1     Running           0          6m34s
+[~] $ oc get pods -n openshift-cnv | grep hostpath
+hostpath-provisioner-lb7rx                            1/1     Running   0          71m
+hostpath-provisioner-operator-67cb69b686-pzbtl        1/1     Running   0          10m
+hostpath-provisioner-z82t2                            1/1     Running   0          71m
 ~~~
 
 We're now ready to configure a new `StorageClass` for the HostPath based storage:

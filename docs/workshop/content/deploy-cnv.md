@@ -1,4 +1,4 @@
-O**penShift Virtualization** is available as both upstream (**KubeVirt**) and downstream releases. As of this writing the downstream release is version 2.4 and is available from the OperatorHub. **This version is fully supported by Red Hat.** 
+O**penShift Virtualization** is available as both upstream (**KubeVirt**) and downstream releases. As of this writing the downstream release is version 2.5 and is available from the OperatorHub. **This version is fully supported by Red Hat.** 
 
 The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. It's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.
 
@@ -6,41 +6,62 @@ Use the **Console** portion of the lab for the next steps. As a reminder, the ac
 
 <img  border="1" src="img/console-button.png"/>
 
-Next, navigate to the top-level '**Operators**' menu entry, and select '**OperatorHub**'. This lists all of the available operators that you can install from the Red Hat Marketplace. Simply start typing '**virtualization**' in the search box and you should see an entry called "OpenShift Virtualization". 
+Next, navigate to the top-level '**Operators**' menu entry, and select '**OperatorHub**'. This lists all of the available operators that you can install from the Red Hat Marketplace. Simply type '**virtualization**' in the search box and you should see an entry called "OpenShift Virtualization". 
 
-<img  border="1" src="img/ocp-virt-operator-panel-2.png"/>
+<img  border="1" src="img/ocp-virt-operator-panel-2-46.png"/>
 
-Select it and you'll see a window that looks like the following:
+Select it and you'll see a dialog that looks like the following:
 
-<img  border="1" src="img/ocp-virt-operator-install-2.png"/>
+<img  border="1" src="img/ocp-virt-operator-install-2-46.png"/>
 
 Click the 'Install' button. This takes you to a second window where you can set some details about the installation. Spend some time to review it, but you can leave the defaults as they'll automatically select the latest version of OpenShift Virtualization and will allow the software to be installed automatically:
 
-<img  border="1" src="img/ocp-virt-operator-install-details.png"/>
+<img  border="1" src="img/ocp-virt-operator-install-details-46.png"/>
 
-Make sure that the namespace it will be installed to is "**openshift-cnv**" - it should be the default entry, but make sure. When you're ready, press the **'Install'** button. The install process progress will be displayed:
+Make sure that the namespace it will be installed to is "**openshift-cnv**" - it should be the default entry, but make sure. When you're ready, press the **'Install'** button. The install process dialog will be displayed:
 
-<img  border="1" src="img/ocp-virt-operatore-install-progress.png"/>
+<img  border="1" src="img/ocp-cnv-install-46-process-1.png"/>
+
+You can watch the process of the install from this dialog box as it progresses:
+
+<img  border="1" src="img/ocp-cnv-install-46-process-2.png"/>
+
+You can also switch to the lab CLI and view the progress:
+
+~~~bash
+[~] $ oc get pods -n openshift-cnv
+NAME                                              READY   STATUS    RESTARTS   AGE
+cdi-operator-c846985f4-44896                      1/1     Running   0          4m39s
+cluster-network-addons-operator-65b44b795-ngpd2   1/1     Running   0          4m40s
+hco-operator-db5db4d8f-224qt                      1/1     Running   0          4m40s
+hco-webhook-86867c5f5c-92tnb                      1/1     Running   0          4m40s
+hostpath-provisioner-operator-67cb69b686-zwgwx    1/1     Running   0          4m39s
+kubevirt-ssp-operator-84db44ccb7-jrgrk            1/1     Running   0          4m39s
+node-maintenance-operator-84599fc49-hrft5         1/1     Running   0          4m39s
+virt-operator-576fd94959-46htk                    1/1     Running   0          3m18s
+virt-operator-576fd94959-jjc86                    1/1     Running   0          3m17s
+vm-import-operator-8597b99b9b-54plg               1/1     Running   0          4m38s
+~~~
 
 Wait for the install to complete successfully; it may take a few minutes:
 
-<img  border="1" src="img/ocp-virt-operatore-install-success.png"/>
+<img  border="1" src="img/ocp-cnv-install-46-process-3.png"/>
 
-Next we need to deploy the rest of the OpenShift Virtualization components that this operator provides. Select the "**OpenShift Virtualization**" link under the '**Name**' column, and you'll be presented with the following:
+Next we need to deploy the rest of the OpenShift Virtualization components that this operator provides. Click the "View Operator" button to be taken to the Operator's main page:
 
-<img  border="1" src="img/ocp-virt-hco-1.png"/>
+<img  border="1" src="img/ocp-cnv-operator-details-46.png"/>
 
-From here, select '**Create Instance**' on the '**OpenShift Virtualization Deployment**' button. You'll be presented with the '**Create HyperConverged Cluster**' screen. This will deploy all of the necessary components that are required to support OpenShift Virtualization. Click the '**Create**' button.
+From here, select '**Create Instance**' on the '**OpenShift Virtualization Deployment**' panel. You'll be presented with the '**Create HyperConverged**' screen. Click the '**Create**' button.
 
-<img  border="1" src="img/ocp-virt-hco-2.png"/>
+<img  border="1" src="img/ocp-cnv-install-46-process-4.png"/>
 
 The '**kubevirt-hyperconverged**' operator will begin to install.
 
-<img  border="1" src="img/ocp-virt-hco-3.png"/>
+<img  border="1" src="img/ocp-cnv-install-46-process-5.png"/>
 
 You can follow the install by moving to the **Workloads** -> **Pods** menu on the left. Choose **Filter** and select **Pending** to watch the pods deploy.
 
-<img src="img/ocp-virt-hco-4.png"/>
+<img src="img/ocp-cnv-install-46-process-6.png"/>
 
 You can also watch this via the CLI:
 
@@ -65,7 +86,41 @@ NAME                                      DISPLAY                    VERSION   R
 kubevirt-hyperconverged-operator.v2.5.1   OpenShift Virtualization   2.5.1     kubevirt-hyperconverged-operator.v2.5.0   Succeeded
 ~~~
 
-If you do not see `Succeeded` in the `PHASE` column then the deployment may still be progressing, or has failed. You will not be able to proceed until the installation has been successful. Once the `PHASE` changes to `Succeeded` you can validate that the required resources and the additional components have been deployed across the nodes. First let's check the pods deployed in the `openshift-cnv` namespace:
+If you do not see `Succeeded` in the `PHASE` column then the deployment may still be progressing, or has failed. You will not be able to proceed until the installation has been successful. 
+
+Once it completes return to the Operator's main page, we have one more install to do:
+
+<img  border="1" src="img/ocp-cnv-operator-details-46.png"/>
+
+Select the "**Create Instance**" link on the HostPathProvisioner panel:
+
+<img  border="1" src="img/hpp-install-1.png"/>
+
+This will take you to the "**Create HostPathProvisoner**" screen.
+
+<img  border="1" src="img/hpp-install-2.png"/>
+
+Choose install and the HostPathProvisioner will be be installed:
+
+<img  border="1" src="img/hpp-install-3.png"/>
+
+You may have noticed when you installed the Hyperconverged operator previously the HostPathProvsioner operator was also installed: 
+
+~~~bash
+[~] $ oc get pods -n openshift-cnv|grep hostpath
+hostpath-provisioner-operator-67cb69b686-zwgwx        1/1     Running   0          9m5s
+~~~
+
+However to fully use this operator we also need to install the HostPathProvisioner Deployment. After this install look at the CLI and you can see this:
+
+~~~bash
+[~] $ oc get pods -n openshift-cnv|grep hostpath
+hostpath-provisioner-lb7rx                            1/1     Running   0          14s
+hostpath-provisioner-operator-67cb69b686-zwgwx        1/1     Running   0          9m51s
+hostpath-provisioner-z82t2                            1/1     Running   0          14s
+~~~
+
+You can validate that the required resources and the additional components have been deployed across the nodes. First let's check the pods deployed in the `openshift-cnv` namespace:
 
 ~~~bash
 $ oc get pods -n openshift-cnv
@@ -85,7 +140,7 @@ cdi-uploadproxy-76c94b65c-x25dt                      1/1     Running   0        
 > **NOTE**: All pods shown from this command should be in the `Running` state. You will have many different types, the above snippet is just an example of the output at one point in time, you may have more or less at any one point. Below we discuss some of the pod types and what they do.
 
 
-Together, all of these pods are responsible for various functions of running a virtual machine on-top of OpenShift/Kubernetes. See the table below that describes some of the various different pod types and their function:
+Together, all of these pods are responsible for various functions of running a virtual machine on-top of OpenShift. See the table below that describes some of the various different pod types and their function:
 
 | Pod Name                             | Pod Responsibilities |
 | ------------------------------------ | -------------------- |
