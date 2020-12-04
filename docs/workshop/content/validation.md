@@ -20,7 +20,7 @@ NAME      VERSION   AVAILABLE   PROGRESSING   SINCE   STATUS
 version   4.6.4     True        False         34m     Cluster version is 4.6.4
 ~~~
 
-This cluster is a 4.5.2 deployment and is currently stable (i.e. it is **not** showing as "progessing"). Let's next review the cluster operators and their status. We should expect them to all be available and also not "progressing" or "degraded."
+This cluster is a 4.6.4 deployment and is currently stable (i.e. it is **not** showing as "progessing"). Let's next review the cluster operators and their status. We should expect them to all be available and also not "progressing" or "degraded."
 
 ~~~bash
 $ oc get clusteroperators
