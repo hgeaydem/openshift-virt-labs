@@ -1,4 +1,4 @@
-Let's first see if we can check the nodes; use th web-based terminal on the right:
+Let's first see if we can check the nodes; use the web-based terminal on the right:
 
 ~~~bash
 $ oc get nodes
