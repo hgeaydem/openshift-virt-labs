@@ -238,21 +238,30 @@ centos8-server-nfs   87m   Running   192.168.47.5/24   cluster-august-lhrd5-work
 
 In this environment, we have one virtual machine instance running on *cluster-august-lhrd5-worker-mh52*. Let's mark that node for maintenance and ensure that our workload (VMI) moves to the available node:
 
-~~~bash
-$ cat << EOF | oc apply -f -
-apiVersion: kubevirt.io/v1beta1
+$ cat << EOF > node-migrate.yaml
+apiVersion: nodemaintenance.kubevirt.io/v1beta1
 kind: NodeMaintenance
 metadata:
   name: worker-maintenance
 spec:
-  nodeName: cluster-august-lhrd5-worker-mh52l
+  nodeName: cluster-august-lhrd5-worker-mh52l <---- CHANGE TO YOUR NODE'S NAME
   reason: "Worker Maintenance - Back Soon"
 EOF
 
-nodemaintenance.kubevirt.io/worker-maintenance created
+$ vi node-migrate.yaml
+(update with your NODE'S NAME)
+
+$ oc apply -f node-migrate.yaml
+nodemaintenance.nodemaintenance.kubevirt.io/worker-maintenance created
 ~~~
 
-> **NOTE**: You **may** lose your browser based web terminal, and you'll need to wait a few seconds for it to become accessible again (try refreshing your browser).
+> **NOTE**: You **may** lose your browser based web terminal, and you'll need to wait a few seconds for it to become accessible again (try refreshing your or reloading the console). You'll know this happened if your apply goes like this:
+> 
+> ~~~bash
+> [~] $ oc apply -f node-migrate.yaml
+nodemaintenance.nodemaintenance.kubevirt.io/worker-maintenance created
+[~] $ Closed
+~~~
 
 Now let's check the status of our environment:
 
@@ -275,6 +284,8 @@ centos8-server-nfs   88m   Running   192.168.47.5/24   cluster-august-lhrd5-work
 ~~~
 
 Success!
+
+> **NOTE**: If you get an error don't forget to select the right project with `oc project default`
 
 Note that the VM has been automatically live migrated to the other worker, as per the `EvictionStrategy`. 
 
@@ -307,4 +318,4 @@ cluster-august-lhrd5-worker-mh52l   Ready    worker   5h41m   v1.18.3+b74c5ed
 
 Note the removal of the `SchedulingDisabled` annotation on the '`STATUS` column. 
 
-> **NOTE**: Just because this node has become active again doesn't mean that the virtual machine will 'fail back' and Live Migrate back to it.
+> **TIP**: Just because this node has become active again doesn't mean that the virtual machine will 'fail back' and Live Migrate back to it.
