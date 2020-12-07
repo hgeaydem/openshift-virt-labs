@@ -29,7 +29,7 @@ After about an hour the **third email** arrives and it indicates the build is do
 To access the lab simply follow the **CNV Lab Workbook** link. From there you will find all details to undertake the lab.
 
 <center>
-    <img src="docs/workshop/content/img/intro-rhpds-email-cnvlablink.png"/>
+    <img src="docs/workshop/content/img/workbook-link.png"/>
 </center>
 
 > **NOTE**: There are other important details in the email **so do not delete it**! When needed you will reference it via instruction from within the lab guide.
