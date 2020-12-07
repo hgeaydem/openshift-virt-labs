@@ -28,6 +28,8 @@ After about an hour the **third email** arrives and it indicates the build is do
 
 To access the lab simply follow the **CNV Lab Workbook** link. From there you will find all details to undertake the lab.
 
+Here is an example of the link you will see in your email:
+
 <center>
     <img src="docs/workshop/content/img/workbook-link.png"/>
 </center>
