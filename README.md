@@ -8,6 +8,32 @@ Welcome to our hands-on OpenShift Virtualization lab for the Red Hat Product Dem
 
 > **NOTE**: We also have a branch that can be used on your own hardware which includes deployment scripts for a completely self-contained training. This is available from the [main branch of this lab's repo](https://github.com/RHFieldProductManagement/openshift-virt-labs/tree/master).
 
+## Ordering your lab environment
+
+Labs are ordered from within the [Red Hat Product Demo System (RHPDS)](https://rhpds.redhat.com/catalog/explorer) environment. Once you login to RHPDS go to **Service Catalogs > OpenShift Demos** and choose **OpenShift Virtualization (CNV) Lab**:
+
+<center>
+    <img src="docs/workshop/content/img/intro-rhpds-catalog.png"/>
+</center>
+
+Select **Order** to request your lab.
+
+You need to have an existing account to access this environment.
+
+## Accessing your lab environment
+
+Once you launch your lab from within RHPDS, you will then receive three automated progress emails while your lab environment is prepared. 
+
+After about an hour the **third email** arrives and it indicates the build is done and contains access details.
+
+To access the lab simply follow the **CNV Lab Workbook** link. From there you will find all details to undertake the lab.
+
+<center>
+    <img src="docs/workshop/content/img/intro-rhpds-email-cnvlablink.png"/>
+</center>
+
+> **NOTE**: There are other important details in the email **so do not delete it**! When needed you will reference it via instruction from within the lab guide.
+
 ## Lab environment
 
 The lab includes a self-hosted OpenShift Virtualization environment and a hands-on self-paced lab guide utilizing [OpenShift homeroom](https://github.com/openshift-homeroom).
@@ -17,35 +43,6 @@ The lab content is presented within your browser in three easy to use sections c
 Through this browser-based environment you'll have access to an OpenShift CLI environment *as well as* the OpenShift UI (console).
 
 All labs steps are run from *within* this fully-contained browser based environment.
-
-## Ordering your lab environment
-Labs are ordered from within the [Red Hat Product Demo System (RHPDS)](https://rhpds.redhat.com/catalog/explorer) environment. Once you login to RHPDS go to **Service Catalogs > OpenShift Demos** and choose **OpenShift Virtualization (CNV) Lab**:
-
-<center>
-    <img src="docs/workshop/content/img/intro-rhpds-catalog.png"/>
-</center>
-
-Select **Order** to request your lab.
-
-## Accessing your lab environment
-You will receive three progress emails from RHPDS while your lab environment is prepared. After about an hour the **third email** indicates the build is done and contains acess a lot of details.
-
-As mentioned, the lab is entirely self-contained in it's own web application. So while the email gives you full details for your OCP install, you need to find the **CNV Lab Workbook** link to access it.
-
-IMAGE TO BE ADDED SHORTLY
-
-<center>
-    <img src="docs/workshop/content/img/intro-rhpds-email-cnvlablink.png-OFF"/>
-</center>
-
-**But keep this email!** 
-
-You do not need this info for the majority of the lab as all the required access (both OCP CLI and OCP GUI) is available via the single **CNV Lab Workbook** URL *without authentication*. 
-
-However, for a later lab you *will* access the bastion via SSH to utilise a proxy server on there.
-
-**Once the email has arrived follow the link for the CNV Lab Workbook and get started there.** For your information an overview of the lab content is below but please use the self-hosted guide to do the labs.
-
 
 ### Lab architecture 
 
