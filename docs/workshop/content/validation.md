@@ -95,7 +95,7 @@ Successfully pushed image-registry.openshift-image-registry.svc:5000/default/duc
 Push successful
 ~~~
 
-> **NOTE**: You may get an error saying "Error from server (BadRequest): container "sti-build" in pod "duckhunt-js-1-build" is waiting to start: PodInitializing"; you were just too quick to ask for the log output of the pods, simply re-run the command.
+> **NOTE**: You may get an error saying *Error from server (BadRequest): container "sti-build" in pod "duckhunt-js-1-build" is waiting to start: PodInitializing* - that's OK! You were just too quick to ask for the log output of the pods, simply re-run the command.
 
 You can check if the Duckhunt pod has finished building and is `Running`, if it's still showing as `ContainerCreating` just give it a few more seconds:
 
@@ -128,6 +128,7 @@ Now, if you can tear yourself away from the game, let's actually start working w
 
 ~~~bash
 $ oc delete deployment/duckhunt-js bc/duckhunt-js svc/duckhunt-js route/duckhunt-js
+
 deployment.apps "duckhunt-js" deleted
 buildconfig.build.openshift.io "duckhunt-js" deleted
 service "duckhunt-js" deleted
