@@ -26,12 +26,12 @@ Once you launch your lab from within RHPDS, you will then receive three automate
 
 After about an hour the **third email** arrives and it indicates the build is done and contains access details.
 
-To access the lab simply follow the **CNV Lab Workbook** link. From there you will find all details to undertake the lab.
+To access the lab simply follow the **OpenShift Virtualization Lab Workbook** link. From there you will find all details to undertake the lab.
 
 Here is an example of the link you will see in your email:
 
 <center>
-    <img src="docs/workshop/content/img/workbook-link.png"/>
+    <img src="docs/workshop/content/img/workbook-link-1.png"/>
 </center>
 
 > **NOTE**: There are other important details in the email **so do not delete it**! When needed you will reference it via instruction from within the lab guide.
@@ -48,15 +48,13 @@ All labs steps are run from *within* this fully-contained browser based environm
 
 ### Lab architecture 
 
-The entire setup is contained within infrastructure provided by RHPDS. All you need to do is Order the lab and access the CNV Workbook Link!
+The entire setup is contained within infrastructure provided by RHPDS. All you need to do is Order the lab and click on the **OpenShift Virtualization Lab Workbook link**!
 
 The deployment is visualised as follows:
 
 <center>
     <img src="docs/workshop/content/img/labarch.png"/>
 </center>
-
-> **REMINDER**: **Within this environment you can access all aspects of the lab through the deployed lab guide which is available via the CNV Workbook Link in the RHPDS email.**
 
 > **NOTE**: For the purposes of this repo and the labs themselves, any reference to "CNV," "Container-native Virtualization," "OpenShift Virtualization," and "KubeVirt" can be used interchangeably.
 
