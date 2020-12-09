@@ -1,4 +1,4 @@
-In this lab we're going to clone a workload and prove that it's identical to the previous. For fun, we will use a Centos 7 image for this work. We're going to download and customise the image, launch a virtual machine via OpenShift Virtualization based on it, and then clone it - we'll then test to see if the cloned machine works as expected. 
+In this lab we're going to clone a workload and prove that it's identical to the machin we cloned it from. For fun, we will use a Centos 7 image for this work. We're going to download and customise the image, launch a virtual machine via OpenShift Virtualization based on it, and then clone it - we'll then test to see if the cloned machine works as expected. 
 
 Let's begin by checking we have a availale PV for this work:
 
@@ -226,10 +226,10 @@ We can view the running VM and VMI:
 
 ~~~bash
 $ oc get vm
-NAME                      AGE     RUNNING   VOLUME
-centos7-clone-nfs         8s      true
-centos8-server-hostpath   7h21m   true
-centos8-server-nfs        7h39m   true
+NAME                      AGE     VOLUME
+centos7-clone-nfs         8s      
+centos8-server-hostpath   7h21m   
+centos8-server-nfs        7h39m   
 
 $ oc get vmi
 NAME                      AGE    PHASE     IP                 NODENAME
@@ -281,7 +281,7 @@ $
 
 We now are going to shutdown the VM so we can clone it without risking filesystem corruption. To do that it's time to introduce a new tool, `virtctl`.
 
-`virtctl` is like oc for VMs. It allows for easy access to the kubervirt API allowing a for easier management of Virtual Machines. Trying running `virtctl --help` for full details. It can do a lot of clever things so check it out. For now, let's just use `virtctl` to stop the running VM so we can clone it. 
+`virtctl` is like `oc` but for VMs. It allows for easy access to the kubervirt API allowing a for easier management of Virtual Machines. Trying running `virtctl --help` for full details. It can do a lot of clever things so check it out. For now, let's just use `virtctl` to stop the running VM so we can clone it. 
 
 ~~~bash
 $ virtctl stop centos7-clone-nfs
@@ -303,10 +303,10 @@ But of course the VM still exists:
 
 ~~~bash
 $ oc get vm
-NAME                      AGE     RUNNING   VOLUME
-centos7-clone-nfs         23m     false
-centos8-server-hostpath   7h44m   true
-centos8-server-nfs        8h      true
+NAME                      AGE     VOLUME
+centos7-clone-nfs         23m     
+centos8-server-hostpath   7h44m   
+centos8-server-nfs        8h      
 ~~~
 
 ### Clone the VM
