@@ -1,4 +1,4 @@
-O**penShift Virtualization** is available as both upstream (**KubeVirt**) and downstream releases. As of this writing the downstream release is version 2.5 and is available from the OperatorHub. **This version is fully supported by Red Hat.** 
+**OpenShift Virtualization** is available as both upstream (**KubeVirt**) and downstream releases. As of this writing the downstream release is version 2.5 and is available from the OperatorHub. **This version is fully supported by Red Hat.** 
 
 The mechanism for installation is to utilise the operator model and deploy via the OpenShift Operator Hub (Marketplace) in the web-console. It's entirely possible to deploy via the CLI should you wish to do so, but we're not documenting that mechanism here.
 
@@ -14,7 +14,7 @@ Select it and you'll see a dialog that looks like the following:
 
 <img  border="1" src="img/ocp-virt-operator-install-2-46.png"/>
 
-Click the 'Install' button. This takes you to a second window where you can set some details about the installation. Spend some time to review it, but you can leave the defaults as they'll automatically select the latest version of OpenShift Virtualization and will allow the software to be installed automatically:
+Click the 'Install' button. This takes you to a second window where you can set some details about the installation. Spend some time to review it, but you can leave the defaults as they'll automatically select the latest version of OpenShift Virtualization and will allow the software to be installed correctly for our purposes:
 
 <img  border="1" src="img/ocp-virt-operator-install-details-46.png"/>
 
@@ -27,6 +27,8 @@ You can watch the process of the install from this dialog box as it progresses:
 <img  border="1" src="img/ocp-cnv-install-46-process-2.png"/>
 
 You can also switch to the lab CLI and view the progress:
+
+> **NOTE**: If nothing is returned give it a few moments; Rome wasn't built in a day! :)
 
 ~~~bash
 [~] $ oc get pods -n openshift-cnv
@@ -72,9 +74,7 @@ $ watch -n2 'oc get pods -n openshift-cnv'
 
 > **NOTE**: It may take a few minutes for the pods to start up. Press **Ctrl+C** to exit the watch command.
 
-During this process you will see a lot of pods create and terminate, which will look something like the following depending on when you view it; it's always changing:
-
-<img src="img/deploy-cnv-watch2.png"/>
+During this process you will see a lot of pods create and terminate.
 
 This will continue for some time, depending on your environment. Please ensure it completes successfully.
 
@@ -88,11 +88,11 @@ kubevirt-hyperconverged-operator.v2.5.1   OpenShift Virtualization   2.5.1     k
 
 If you do not see `Succeeded` in the `PHASE` column then the deployment may still be progressing, or has failed. You will not be able to proceed until the installation has been successful. 
 
-Once it completes return to the Operator's main page, we have one more install to do:
+Once it completes return to the Operator's main page, we have one more install to do. In the Console go to **Operators -> Installed Operators** and click on "**OpenShift Virtualization**".:
 
 <img  border="1" src="img/ocp-cnv-operator-details-46.png"/>
 
-Select the "**Create Instance**" link on the HostPathProvisioner panel:
+Select the "**Create Instance**" link on the **HostPathProvisioner** panel:
 
 <img  border="1" src="img/hpp-install-1.png"/>
 
@@ -100,7 +100,7 @@ This will take you to the "**Create HostPathProvisoner**" screen.
 
 <img  border="1" src="img/hpp-install-2.png"/>
 
-Choose install and the HostPathProvisioner will be be installed:
+Click the "**Create**" button and the HostPathProvisioner will be be installed:
 
 <img  border="1" src="img/hpp-install-3.png"/>
 
@@ -111,7 +111,9 @@ You may have noticed when you installed the Hyperconverged operator previously t
 hostpath-provisioner-operator-67cb69b686-zwgwx        1/1     Running   0          9m5s
 ~~~
 
-However to fully use this operator we also need to install the HostPathProvisioner Deployment. After this install look at the CLI and you can see this:
+However to fully use this operator we also needed to install the HostPathProvisioner Deployment, which we did in this previous step. 
+
+After this install switch to the Terminal and you can see this with `oc`:
 
 ~~~bash
 [~] $ oc get pods -n openshift-cnv|grep hostpath
@@ -139,8 +141,7 @@ cdi-uploadproxy-76c94b65c-x25dt                      1/1     Running   0        
 
 > **NOTE**: All pods shown from this command should be in the `Running` state. You will have many different types, the above snippet is just an example of the output at one point in time, you may have more or less at any one point. Below we discuss some of the pod types and what they do.
 
-
-Together, all of these pods are responsible for various functions of running a virtual machine on-top of OpenShift. See the table below that describes some of the various different pod types and their function:
+Together, all of these pods are responsible for various functions of running a virtual machine on-top of OpenShift. See the table below that describes some of the various different pod types and their function (for full details and more information, [consult the official OpenShift documentation pages](https://docs.openshift.com/container-platform/4.6/virt/about-virt.html)):
 
 | Pod Name                             | Pod Responsibilities |
 | ------------------------------------ | -------------------- |
@@ -260,12 +261,12 @@ $ oc get nnce -n openshift-cnv
 No resources found in openshift-cnv namespace.
 ~~~
 
-As we've not set any additional configuration at this stage, it's perfectly normal to have 'no resources found' in the output above. We are going to build this in a later lab!
+As we've not set any additional configuration at this stage, it's expected to see the '*No resources found in openshift-cnv namespace*' in the output above. We are going to build this in a later lab!
 
 
 ### Viewing the OpenShift Virtualization Dashboard
 
-When OpenShift Virtualization is deployed it adds additional components to OpenShift's web-console so you can interact with objects and custom resources defined by OpenShift Virtualization, including `VirtualMachine` types. If you select the `Console` button at the top of this pane you should see the web-console displayed. You can now navigate to "**Workloads**" --> "**Virtualization**" on the left-hand side panel and you should see the new component for OpenShift Virtualization. Of course there aren't any Virtual Machines running yet.
+When OpenShift Virtualization is deployed it adds additional components to OpenShift's web-console so you can interact with objects and custom resources defined by OpenShift Virtualization, including `VirtualMachine` types. Select the `Console` button to go back to the OpenShift web-console. You can now navigate to "**Workloads**" --> "**Virtualization**" on the left-hand side panel and you should see the new component for OpenShift Virtualization. Of course there aren't any Virtual Machines running yet.
 
 <img src="img/ocpvirt-dashboard.png"/>
 
