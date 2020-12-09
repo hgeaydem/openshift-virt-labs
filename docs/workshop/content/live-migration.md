@@ -238,6 +238,7 @@ centos8-server-nfs   87m   Running   192.168.47.5/24   cluster-august-lhrd5-work
 
 In this environment, we have one virtual machine instance running on *cluster-august-lhrd5-worker-mh52*. Let's mark that node for maintenance and ensure that our workload (VMI) moves to the available node:
 
+~~~bash
 $ cat << EOF > node-migrate.yaml
 apiVersion: nodemaintenance.kubevirt.io/v1beta1
 kind: NodeMaintenance
