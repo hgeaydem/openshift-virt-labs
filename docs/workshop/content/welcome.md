@@ -4,9 +4,9 @@ Welcome to the OpenShift Virtualization self-paced lab on Red Hat Product Demo S
 
 **OpenShift Virtualization** is the official *product name* for the Container-native Virtualization operator for OpenShift. This has more commonly been referred to as "**CNV**" and is the downstream offering for the upstream [Kubevirt project](https://kubevirt.io/). While some aspects of this lab will still have references to "CNV" any reference to "CNV", "Container-native Virtualization," and "OpenShift Virtualization" can be used interchangeably.
 
-In these labs you'll utilise a virtual environment that mimics, as close as (feasibly) possible, a baremetal OpenShift 4.6 deployment. For this lab to run within RHPDS, however, we're using OpenShift on OpenStack underneath. 
+In these labs you'll utilise a virtual environment that mimics, as close as (feasibly) possible, a baremetal OpenShift 4.6 deployment. For this lab to run within RHPDS, however, we're using OpenShift on OpenStack underneath. This lab will help get you up to speed with the concepts of OpenShift Virtualization. In this hands-on lab you won't need to deploy OpenShift as you'll have access to a freshly deployed cluster, ready to be configured and used with OpenShift Virtualization.
 
-This lab will help get you up to speed with the concepts of OpenShift Virtualization. In this hands-on lab you won't need to deploy OpenShift as you'll have access to a freshly deployed cluster, ready to be configured and used with OpenShift Virtualization.
+
 
 This self-hosted lab guide that will run you through the following topics:
 
@@ -20,28 +20,31 @@ This self-hosted lab guide that will run you through the following topics:
 * **Utilising pod networking for VM's**
 * **Using the OpenShift Web Console with OpenShift Virtualization** 
 
+
+
 ## Lab Setup
 
-The lab is run entirely from within the hosted lab environment you are reading this from now. The environment provides both a CLI with the tools you need (such as `oc` and `virtctl`) as well as access to the OpenShift console as a privileged user. Switching between the console and the CLI enviornment is easy. At the top middle of the lab guide you'll find a link to switch between the "**Terminal**" and the "**Console**".
+The lab is operated from within the hosted lab environment you are reading this from now. The environment provides both a CLI with the tools you need (such as `oc` and `virtctl`) as well as access to the OpenShift console as a privileged user. Switching between the console and the CLI enviornment is easy. At the top middle of the lab guide you'll find a link to switch between the "**Terminal**" and the "**Console**".
 
 <img src="img/console-button.png"/>
 
-Selecting either will highlight your choice in blue and change the window's focus to the requested environment. 
 
-Within the lab you can cut and paste commands directly from the instructions; but of course **be sure to review all commands carefully** both for functionality and syntax!
+
+Selecting either will highlight your choice in blue and change the window's focus to the requested environment. Within the lab you can cut and paste commands directly from the instructions; but of course **be sure to review all commands carefully** both for functionality and syntax!
 
 > **NOTE**: In some browsers and operating systems you may need to use Ctrl-Shift-C / Ctrl-Shift-V to copy/paste!
 
+
+
 ## Environment
 
-The lab environment consists of three (3) OpenShift masters and two (2) OpenShift workers. 
-
-The installation consists of two networks, one for internal OpenShift communication, and another to represent a "public" network unrelated to OpenShift. This second network is connected to all OpenShift workers. We use this as a "public" network in the labs but it should be noted that the network actually uses an unroutable range and is just an example. The point is that it is external to OpenShift and could be any extra network.
+The lab environment consists of three (3) OpenShift masters and two (2) OpenShift workers. In addition, the installation consists of two networks, one for internal OpenShift communication, and another to represent a "public" network unrelated to OpenShift. This second network is connected to all OpenShift workers. We use this as a "public" network in the labs but it should be noted that the network actually uses an unroutable range and is just an example. The point is that it is external to OpenShift and could be any extra network.
 
 In addition to the OpenShift deployment we are also running a bastion host with a few extra services:
 
 * A squid proxy server to allow a web browser on your local system access to the "public" network mentioned above. Instructions on how to connect your browser to this are below.
 * An NFS server to provide basic storage to our OpenShift environment. It is full configured and available to the lab.
+* A web-server that hosts some pre-cached images for our use throughout the labs.
 
 Conceptually, the environment looks like this:
 
@@ -49,18 +52,16 @@ Conceptually, the environment looks like this:
     <img src="img/labarch.png"/>
 </center>
 
-## Accessing the bastion host
+## Configuring the Proxy Server
 
-As mentioned, the bastion host serves a few purposes and **it is required to connect to it before starting the lab**. 
+Whilst the lab guide is self-contained within the cluster that you'll be utilising, the bastion VM that provides some additional supporting functions runs a squid proxy server; this server allows your **local** browser to have access to the "public" network we utilise later in the lab -- so we can demonstrate that OpenShift Virtualization based virtual machines are accessible from the "public" network. As this network is actually a non-routable IP range within RHPDS, you'll need the proxy server to access it. You can opt not to set this up, but some of the steps later in the lab won't work as expected.
 
-On the bastion is a squid proxy server. This server allows your local browser to have access to the "public" network we utilise in the lab. As mentioned, this network is actually a non-routable IP range within RHPDS, so you'll need the squid to access it. 
+To be able to use this proxy server (and complete all of the lab steps) you will need to open up a **separate** SSH connection to this machine (**not** from within the lab guide console, but using the terminal emulator on your system) and create a SSH port forward to the proxy server. The hostname of your bastion machine, along with the username and password, will have been provided to you in the email from RHPDS. Connecting to this now will save some time and confusion later. Squid will allow you to also connect to the Internet, so updating the proxy server for your current browser won't compromise your connectivity to this lab guide - **just remember to change the settings back when you are done with the lab!**
 
-The following steps can be performed on the browser you are using now, or an alternative one. The squid will allow you to also connect to the internet, so using your current browser won't compromise your connectivity - **just remember to change the settings back when you are done with the lab!**
-
-> **NOTE**: All connections to the bastion are made using the username and password supplied in the RHPDS email, below is just an example:
+> **NOTE**: All connections to the bastion are made using the username and password supplied in the RHPDS email, below is just an example. Also, if you choose not to setup the proxy, you'll still be able to carry out the vast majority of tasks in this lab guide.
 
 ### Step 1 
-Initiate an SSH forward from port 8080 on your local machine to port 3128 (squid) on the bastion:
+Initiate an SSH forward from port 8080 on your **local** machine to port 3128 (squid) on the **bastion**:
 
 ~~~bash
 $ ssh roxenham-redhat.com@bastion.bfb0.green.osp.opentlc.com -L 8080:localhost:3128
@@ -94,7 +95,7 @@ Configure your browser to utilise the port forward. Set your browser (we've test
 <img src="img/firefox-proxy.png" width="80%"/>
 </center>
 
-As mentioned this connection now allows you to access the lab's "public" network on 192.168.47.0/24 as well as this lab guide and the internet beyond.
+As mentioned this connection now allows you to access the lab's "public" network on 192.168.47.0/24 as well as this lab guide and the Internet beyond.
 
 
 # Feedback Please!
