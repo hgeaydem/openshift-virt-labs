@@ -127,15 +127,15 @@ This starts to **schedule** the virtual machine across the available workers, wh
 
 ~~~bash
 $ oc get vm
-NAME                 AGE   RUNNING   VOLUME
-centos8-server-nfs   5s    true
+NAME                 AGE   VOLUME
+centos8-server-nfs   5s   
 
 $ oc get vmi
 NAME                 AGE   PHASE     IP    NODENAME
 centos8-server-nfs   8s    Running         cluster-august-lhrd5-worker-6w62
 ~~~
 
-> **NOTE**: A `vm` object is the definition of the virtual machine, whereas a `vmi` is an instance of that virtual machine definition.
+> **NOTE**: A `vm` object is the definition of the virtual machine, whereas a `vmi` is an instance of that virtual machine definition that is actually running.
 
 After a few minutes the machine will report its IP:
 
@@ -147,7 +147,7 @@ NAME                 AGE    PHASE     IP                 NODENAME
 centos8-server-nfs   117s   Running   192.168.47.5/24   cluster-august-lhrd5-worker-6w624
 ~~~
 
-> **REMINDER**: It may take a short while for the IP address to appear as it utilise the qemu-guest-agent which needs time to start up.
+> **REMINDER**: It may take a short while for the IP address to appear as it utilises the qemu-guest-agent which needs a little time to start up.
 
 OpenShift spawns a pod that manages the provisioning of the virtual machine in our environment, known as the `virt-launcher`:
 
@@ -216,7 +216,7 @@ $ oc exec -it virt-launcher-centos8-server-nfs-5d8zd /bin/bash
 kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead.
 ~~~
 
-And then you can run the usual virsh commands:
+And then you can run the usual `virsh` commands:
 
 ~~~bash
 [root@centos8-server-nfs /]# virsh list --all
@@ -446,6 +446,7 @@ spec:
                   - systemctl restart qemu-guest-agent.service
           name: cloudinitdisk
 EOF
+
 virtualmachine.kubevirt.io/centos8-server-hostpath created
 ~~~
 
