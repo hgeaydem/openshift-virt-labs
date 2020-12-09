@@ -1,8 +1,8 @@
-Up to this point we've provisioned our virtual machines on a single bridged network, i.e. just using more traditional networking models. 
+Up to this point we've provisioned our virtual machines on a single bridged network, i.e. impleneting a more traditional networking model. 
 
 However, OpenShift 4.x utilises Multus as the default CNI, which permits the user to attach multiple network interfaces from different delegate CNI's simultaneously. 
 
-One of the models available for OpenShift Virtualization is to provide networking with a combination of attachments, including pod networking, that is, having virtual machines attached to the exact same networks that the container pods are attached to as well. 
+One of the models available for OpenShift Virtualization is to provide networking with a combination of attachments, including pod networking; simply put this means you can have virtual machines attached to the same networks that the container pods are attached to. 
 
 This has the added benefit of allowing virtual machines to leverage all of the Kubernetes models for services, load balancers, node ports, and a wide variety of other functions.
 
@@ -118,10 +118,12 @@ As you'll recall the instance is just the running version of the VM, so let's se
 
 ~~~bash
 $ oc get vm
-NAME                 AGE   RUNNING   VOLUME
-centos7-masq         29s   false
-centos8-server-nfs   20h   true
+NAME                 AGE   VOLUME
+centos7-masq         29s   
+centos8-server-nfs   20h   
 ~~~
+
+Both are there. But if you'll recall, a vm is not something we expect to see running, but a vmi is. Try `oc get vmi`.
 
 Aha! It's not running. Why? Well, look closely at the yaml above and you'll find the following:
 
@@ -138,9 +140,9 @@ $ virtctl start centos7-masq
 VM centos7-masq was scheduled to start
 
 $ oc get vm
-NAME                 AGE     RUNNING   VOLUME
-centos7-masq         3m33s   true
-centos8-server-nfs   20h     true
+NAME                 AGE     VOLUME
+centos7-masq         3m33s   
+centos8-server-nfs   20h     
 
 $ oc get vmi/centos7-masq
 NAME           AGE   PHASE     IP            NODENAME
