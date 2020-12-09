@@ -51,7 +51,7 @@ $ oc patch storageclass nfs -p '{"metadata": {"annotations": {"storageclass.kube
 storageclass.storage.k8s.io/nfs patched
 ~~~
 
-Next we will create some NFS-backed persistent volumes (PVs) for our VM persistent volume claims (PV) to utilise. However, before we do that, let's review the NFS setup we are going to use.
+Next we will create some NFS-backed persistent volumes (PVs) for our VM persistent volume claims (PVCs) to utilise. However, before we do that, let's review the NFS setup we are going to use.
 
 We have deployed a simple NFS server to the RHPDS bastion host. This is the same machine you connected to as lab-user to port forward for the squid. The NFS server is sharing four directories on that host. You can view the setup directly on that bastion (not from within the lab environment's CLI):
 
@@ -260,7 +260,7 @@ Volumes:
 
 Here we can see the importer settings we requested through our claims, such as `IMPORTER_SOURCE`, `IMPORTER_ENDPOINT`, and`IMPORTER_IMAGE_SIZE`. 
 
-Once this process has completed you'll notice that your PVC is ready to use:
+Once this process has completed (remember to watch for it to complete via `oc logs importer-centos8-nfs -f`) you'll notice that your PVC is ready to use:
 
 ~~~bash
 $ oc get pvc
@@ -364,7 +364,7 @@ cluster-august-lhrd5-worker-6w624   Ready                      worker   134m   v
 cluster-august-lhrd5-worker-mh52l   Ready,SchedulingDisabled   worker   134m   v1.18.3+b74c5ed
 ~~~
 
-> **NOTE**: This will take a few minutes (allow at least 10 mins in an RHPDS-based lab) to reflect on the cluster, and causes the worker nodes to reboot. You'll witness a disruption on the lab guide functionality where you will see the consoles hang and/or display a "Closed" image. In some cases we have needed to refresh the entire browser.
+> **NOTE**: This will take a few minutes (allow at least 10 mins in an RHPDS-based lab) to reflect on the cluster, and causes the worker nodes to reboot. **You'll witness a disruption on the lab guide functionality where you will see the consoles hang and/or display a "Closed" image.** In some cases we have needed to refresh the entire browser.
 
 <img src="img/disconnected-terminal.png" width="80%"/>
 
@@ -386,9 +386,9 @@ $ oc get machineconfigpool worker -o=jsonpath="{.status.conditions[?(@.type=='Up
 True
 ~~~
 
-> **NOTE**: If you lose connectivity entirely and the app appears to vanish (ie Application is not available for the whole environment) please be patient. You can also monitor the progress by issuing `oc` commands on the bastion. Once both workers are `Ready` you can refresh your main lab URL and continue.
+> **NOTE**: If you lose connectivity entirely and the app appears to vanish (ie *Application is not available* message for the whole environment) please be patient. You can also monitor the progress by issuing `oc` commands on the bastion. Once both workers are `Ready` you can refresh your main lab URL and continue.
 
-Now we can set the HostPathProvisioner configuration itself, i.e. telling the operator what path to actually use - the systemd file we just applied merely ensures that the directory is present and has the correct SELinux labels applied to it:
+Now we can set the HostPathProvisioner configuration itself. We need to tell the operator what path to actually use - the systemd file we just applied merely ensures that the directory is present and has the correct SELinux labels applied to it:
 
 ~~~bash
 $ cat << EOF | oc apply -f -
@@ -405,6 +405,8 @@ EOF
 
 hostpathprovisioner.hostpathprovisioner.kubevirt.io/hostpath-provisioner created
 ~~~
+
+> **NOTE**: You may see the following warning when you run this command: *Warning: oc apply should be used on resource created by either oc create --save-config or oc apply*. You can disregard for now as the command has run successfully.
 
 When you've applied this config, an additional pod will be spawned on each of the worker nodes; this pod is responsible for managing the hostpath access on the respective host; note the shorter age (42s in the example below):
 
@@ -431,7 +433,7 @@ EOF
 storageclass.storage.k8s.io/hostpath-provisioner created
 ~~~
 
-You'll note that this storage class **does** have a provisioner (as opposed to the previous use of `kubernetes.io/no-provisioner`), and therefore it can create persistent volumes dynamically when a claim is submitted by the user, let's validate that by creating a new hostpath based PVC and checking that it creates the associated PV:
+You'll note that this storage class **does** have a provisioner (as opposed to the previous use of `kubernetes.io/no-provisioner`), and therefore it can create persistent volumes **dynamically** when a claim is submitted by the user, let's validate that by creating a new hostpath based PVC and checking that it creates the associated PV:
 
 
 ~~~bash
@@ -550,7 +552,7 @@ sh-4.2# chroot /host
 sh-4.4#
 ~~~
 
-And review the PVC created in the /var/hpvolumes directory:
+And review the PVC created in the `/var/hpvolumes` directory:
 
 ~~~bash
 sh-4.4# ls -l /var/hpvolumes/pvc-e2f75a46-7402-4bc6-ac30-acce7acd9feb/disk.img
@@ -569,4 +571,4 @@ Removing debug pod ...
 
 ~~~
 
-Make sure that you've executed the two `exit` commands above - we need to make sure that you're back to the right shell before continuing, and aren't still inside of the debug pod.
+Make sure that you've executed the two `exit` commands above - we need to make sure that you're back to the right shell before continuing and aren't still inside of the debug pod.
