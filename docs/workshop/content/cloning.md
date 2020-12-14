@@ -1,6 +1,6 @@
 In this lab we're going to clone a workload and prove that it's identical to the previous. For convenience we're going to download and customise a Fedora image, launch a virtual machine via OpenShift virtualisation based on it, and then clone it - we'll then test to see if the cloned machine works as expected. Before we begin we need to setup our Fedora 31 cloud image, let's first connect to our bastion host as we need somewhere to process and serve the image:
 
-> **IMPORTANT NOTE**: As Fedora 31 is no longer available the lab has been updated to instruct you to download a Fedora 32 image. However, we have not changed all the Fedora references for assets created to support this. This means you'll see naming such as "fc31" when using this Fedora Core 32 image. We will endeavour to update this as soon as possible **but it does not affect the ability to run the lab**.
+> **IMPORTANT NOTE**: As Fedora 31 is no longer available the lab has been updated to instruct you to download a Fedora 32 image. However, we have not changed the *NAMING* for Fedora references for assets created to reflect this. This means you'll see naming such as "fc31" when using this Fedora Core 32 image. We will endeavour to update this as soon as possible **but it does not affect the ability to run the lab**.
 
 ~~~bash
 $ ssh root@ocp4-bastion
