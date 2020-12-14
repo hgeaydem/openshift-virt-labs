@@ -1,23 +1,25 @@
-In this lab we're going to clone a workload and prove that it's identical to the previous. For convenience we're going to download and customise a Fedora 31 image, launch a virtual machine via OpenShift virtualisation based on it, and then clone it - we'll then test to see if the cloned machine works as expected. Before we begin we need to setup our Fedora 31 cloud image, let's first connect to our bastion host as we need somewhere to process and serve the image:
+In this lab we're going to clone a workload and prove that it's identical to the previous. For convenience we're going to download and customise a Fedora image, launch a virtual machine via OpenShift virtualisation based on it, and then clone it - we'll then test to see if the cloned machine works as expected. Before we begin we need to setup our Fedora 31 cloud image, let's first connect to our bastion host as we need somewhere to process and serve the image:
+
+> **IMPORTANT NOTE**: As Fedora 31 is no longer available the lab has been updated to instruct you to download a Fedora 32 image. However, we have not changed all the Fedora references for assets created to support this. This means you'll see naming such as "fc31" when using this Fedora Core 32 image. We will endeavour to update this as soon as possible **but it does not affect the ability to run the lab**.
 
 ~~~bash
 $ ssh root@ocp4-bastion
 (password is "redhat")
 ~~~
 
-Change directory to `/var/www/html` and download the latest Fedora 31 cloud image there:
+Change directory to `/var/www/html` and download the latest Fedora 32 cloud image there:
 
 ~~~bash
 # cd /var/www/html
 
-# wget https://download.fedoraproject.org/pub/fedora/linux/releases/31/Cloud/x86_64/images/Fedora-Cloud-Base-31-1.9.x86_64.raw.xz
+# wget https://download.fedoraproject.org/pub/fedora/linux/releases/32/Cloud/x86_64/images/Fedora-Cloud-Base-32-1.6.x86_64.raw.xz
 (...)
 
-# xz -d Fedora-Cloud-Base-31-1.9.x86_64.raw.xz
+# xz -d Fedora-Cloud-Base-32-1.6.x86_64.raw.xz
 (no output but may take a minute)
 
 # ls -l | grep -i fedora
--rw-r--r--. 1 root root  4294967296 Oct 23 19:07 Fedora-Cloud-Base-31-1.9.x86_64.raw
+-rw-r--r--. 1 root root  4294967296 14 Dec 14:43 Fedora-Cloud-Base-32-1.6.x86_64.raw
 ~~~
 
 Now we need to customise this image, we're going to do the following:
@@ -31,12 +33,12 @@ Now we need to customise this image, we're going to do the following:
 
 # systemctl enable --now libvirtd
 
-# virt-customize -a /var/www/html/Fedora-Cloud-Base-31-1.9.x86_64.raw --run-command 'sed -i s/^#PermitRootLogin.*/PermitRootLogin\ yes/ /etc/ssh/sshd_config'
+# virt-customize -a /var/www/html/Fedora-Cloud-Base-32-1.6.x86_64.raw --run-command 'sed -i s/^#PermitRootLogin.*/PermitRootLogin\ yes/ /etc/ssh/sshd_config'
 
 [   0.0] Examining the guest ...
 (...)
 
-# virt-customize -a /var/www/html/Fedora-Cloud-Base-31-1.9.x86_64.raw --uninstall=cloud-init --root-password password:redhat --ssh-inject root:file:/root/.ssh/id_rsa.pub
+# virt-customize -a /var/www/html/Fedora-Cloud-Base-32-1.6.x86_64.raw --uninstall=cloud-init --root-password password:redhat --ssh-inject root:file:/root/.ssh/id_rsa.pub
 
 [   0.0] Examining the guest ...
 (...)
@@ -48,7 +50,7 @@ Connection to ocp4-bastion closed.
 
 > **NOTE**: Make sure that you've disconnected from this machine before proceeding.
 
-Now that we've prepared our Fedora 31 VM and placed it on an accessible location on our bastion host: (for reference it's at: http://192.168.123.100:81/Fedora-Cloud-Base-31-1.9.x86_64.raw). 
+Now that we've prepared our Fedora 31 VM and placed it on an accessible location on our bastion host: (for reference it's at: http://192.168.123.100:81/Fedora-Cloud-Base-32-1.6.x86_64.raw). 
 
 Let's build a PV that will eventually house a copy of this image so we can build a VM from it afterwards:
 
