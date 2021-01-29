@@ -82,9 +82,13 @@ You will know the process is complete when you can return to the terminal and se
 
 ~~~bash
 $ oc get csv -n openshift-cnv
-NAME                                      DISPLAY                    VERSION   REPLACES                                  PHASE
-kubevirt-hyperconverged-operator.v2.5.1   OpenShift Virtualization   2.5.1     kubevirt-hyperconverged-operator.v2.5.0   Succeeded
+NAME                                      DISPLAY                    VERSION   REPLACES
+PHASE
+kubevirt-hyperconverged-operator.v2.5.3   OpenShift Virtualization   2.5.3     kubevirt-hyperconverged-operator.v2.5.2
+Succeeded
 ~~~
+
+> **NOTE**: Depending on the operator version available at the time of this lab, your VERSION value may be different.
 
 If you do not see `Succeeded` in the `PHASE` column then the deployment may still be progressing, or has failed. You will not be able to proceed until the installation has been successful. 
 
