@@ -6,26 +6,25 @@
 SSH_PUB_BASTION=~/.ssh/id_rsa.pub
 
 # Set your pull secret json (see https://cloud.redhat.com/openshift/install)
-PULL_SECRET=''
 
 # Set the version of OpenShift you want to deploy
 # You can use a specific release, e.g. 4.6.1, or use latest-4.5, latest-4.6 (default), etc.
 # Check available versions here: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/
-OCP_VERSION=latest-4.6
+OCP_VERSION=latest-4.7
 
 # Set the RHEL8 or CentOS8 image you will use for the bastion VM
 # This image will be cached in /var/lib/libvirt/images if you've already got one
 RHEL8_KVM=https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.2.2004-20200611.2.x86_64.qcow2
 
 # Configure if you want to be able to support OpenShift Container Storage (3rd worker + extra volumes) - default is FALSE
-OCS_SUPPORT=false
+OCS_SUPPORT=true
 
 # Configure if you want to use a disconnected registry to save bandwidth and speed up deployment - default is TRUE
 USE_DISCONNECTED=true
 
 # Configure if you want to use Baremetal IPI mode instead of UPI (requires 4.6) - default is FALSE
 # WARNING: This code is experimental and has not been extensively tested on EL8.
-USE_IPI=false
+USE_IPI=true
 
 ################################
 # DO NOT CHANGE ANYTHING BELOW #
