@@ -25,7 +25,7 @@ USE_DISCONNECTED=true
 
 # Configure if you want to use Baremetal IPI mode instead of UPI (requires 4.6) - default is FALSE
 # WARNING: This code is experimental and has not been extensively tested on EL8.
-USE_IPI=true
+USE_IPI=false
 
 ################################
 # DO NOT CHANGE ANYTHING BELOW #
