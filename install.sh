@@ -6,7 +6,7 @@
 SSH_PUB_BASTION=~/.ssh/id_rsa.pub
 
 # Set your pull secret json (see https://cloud.redhat.com/openshift/install)
-PULL_SECRET=''
+PULL_SECRET='PULLSECRET'
 
 # Set the version of OpenShift you want to deploy
 # You can use a specific release, e.g. 4.6.1, or use latest-4.5, latest-4.6 (default), etc.
