@@ -27,6 +27,9 @@ USE_DISCONNECTED=true
 # WARNING: This code is experimental and has not been extensively tested on EL8.
 USE_IPI=false
 
+#Warning : this will DESTROY your environment, only run it on throwable envs (e.g packet or fpm lab) you've been warned !
+FAST_IPI=true
+
 ################################
 # DO NOT CHANGE ANYTHING BELOW #
 ################################
@@ -218,7 +221,7 @@ if $LOW_MEMORY; then
 	BASTION_MEMORY=8192
 fi
 
-if $USE_IPI; then
+if $USE_IPI && !$FAST_IPI; then
 	BAST_PROV="--network network:ocp4-provisioning,mac=de:ad:be:ef:00:00"
 	M1_PROV="--network network:ocp4-provisioning,mac=de:ad:be:ef:00:01"
 	M2_PROV="--network network:ocp4-provisioning,mac=de:ad:be:ef:00:02"
@@ -228,9 +231,20 @@ if $USE_IPI; then
 	W3_PROV="--network network:ocp4-provisioning,mac=de:ad:be:ef:00:06"
 fi
 
+if $FAST_IPI; then
+  M1_PROV="--network network:ocp4-provisioning,mac=de:ad:be:ef:00:01"
+	M2_PROV="--network network:ocp4-provisioning,mac=de:ad:be:ef:00:02"
+	M3_PROV="--network network:ocp4-provisioning,mac=de:ad:be:ef:00:03"
+	W1_PROV="--network network:ocp4-provisioning,mac=de:ad:be:ef:00:04"
+	W2_PROV="--network network:ocp4-provisioning,mac=de:ad:be:ef:00:05"
+	W3_PROV="--network network:ocp4-provisioning,mac=de:ad:be:ef:00:06"
+fi
+
 mkdir -p node-configs/
-sudo virt-install --virt-type kvm --ram $BASTION_MEMORY --vcpus 4 --os-variant rhel8.1 --disk path=/var/lib/libvirt/images/ocp4-bastion.qcow2,device=disk,bus=virtio,format=qcow2 $CPU_FLAGS --noautoconsole --vnc --network network:ocp4-net,mac=52:54:00:22:33:44 $BAST_PROV --boot hd --name ocp4-bastion --print-xml 1 > node-configs/ocp4-bastion.xml
-sudo virt-install --virt-type kvm --ram 8192 --vcpus 4 --os-variant rhel8.1 --disk path=/var/lib/libvirt/images/ocp4-bootstrap.qcow2,device=disk,bus=virtio,format=qcow2 $CPU_FLAGS --noautoconsole --vnc --network network:ocp4-net,mac=52:54:00:33:44:55 --boot hd,network --name ocp4-bootstrap --print-xml 1 > node-configs/ocp4-bootstrap.xml
+if !$FAST_IPI; then
+  sudo virt-install --virt-type kvm --ram $BASTION_MEMORY --vcpus 4 --os-variant rhel8.1 --disk path=/var/lib/libvirt/images/ocp4-bastion.qcow2,device=disk,bus=virtio,format=qcow2 $CPU_FLAGS --noautoconsole --vnc --network network:ocp4-net,mac=52:54:00:22:33:44 $BAST_PROV --boot hd --name ocp4-bastion --print-xml 1 > node-configs/ocp4-bastion.xml
+  sudo virt-install --virt-type kvm --ram 8192 --vcpus 4 --os-variant rhel8.1 --disk path=/var/lib/libvirt/images/ocp4-bootstrap.qcow2,device=disk,bus=virtio,format=qcow2 $CPU_FLAGS --noautoconsole --vnc --network network:ocp4-net,mac=52:54:00:33:44:55 --boot hd,network --name ocp4-bootstrap --print-xml 1 > node-configs/ocp4-bootstrap.xml
+fi
 sudo virt-install --virt-type kvm --ram 16384 --vcpus 4 --os-variant rhel8.1 --disk path=/var/lib/libvirt/images/ocp4-master1.qcow2,device=disk,bus=virtio,format=qcow2 $CPU_FLAGS --noautoconsole --vnc $M1_PROV --network network:ocp4-net,mac=52:54:00:19:d7:9c --boot hd,network --name ocp4-master1 --print-xml 1 > node-configs/ocp4-master1.xml
 sudo virt-install --virt-type kvm --ram 16384 --vcpus 4 --os-variant rhel8.1 --disk path=/var/lib/libvirt/images/ocp4-master2.qcow2,device=disk,bus=virtio,format=qcow2 $CPU_FLAGS --noautoconsole --vnc $M2_PROV --network network:ocp4-net,mac=52:54:00:60:66:89 --boot hd,network --name ocp4-master2 --print-xml 1 > node-configs/ocp4-master2.xml
 sudo virt-install --virt-type kvm --ram 16384 --vcpus 4 --os-variant rhel8.1 --disk path=/var/lib/libvirt/images/ocp4-master3.qcow2,device=disk,bus=virtio,format=qcow2 $CPU_FLAGS --noautoconsole --vnc $M3_PROV --network network:ocp4-net,mac=52:54:00:9e:5c:3f --boot hd,network --name ocp4-master3 --print-xml 1 > node-configs/ocp4-master3.xml
@@ -274,285 +288,328 @@ if [ ! -f $SSH_PUB_BASTION ]; then
     SSH_PUB_BASTION=~/.ssh/id_rsa.pub
 fi
 
-sudo virsh start ocp4-bastion
-#sleep 60
-echo -ne "\n[INFO] Waiting for the ssh daemon on the bastion host to appear"
-while [ ! "`nmap -sV -p 22 192.168.123.100|grep open`" ]; do
-  echo -n "."
-  sleep 1s
-done
-echo
+if !$FAST_IPI; then
+  sudo virsh start ocp4-bastion
+  #sleep 60
+  echo -ne "\n[INFO] Waiting for the ssh daemon on the bastion host to appear"
+  while [ ! "`nmap -sV -p 22 192.168.123.100|grep open`" ]; do
+    echo -n "."
+    sleep 1s
+  done
+  echo
 
-sed -i /192.168.123.100/d ~/.ssh/known_hosts
-sshpass -p redhat ssh-copy-id -o StrictHostKeyChecking=no -i $SSH_PUB_BASTION root@192.168.123.100
+  sed -i /192.168.123.100/d ~/.ssh/known_hosts
+  sshpass -p redhat ssh-copy-id -o StrictHostKeyChecking=no -i $SSH_PUB_BASTION root@192.168.123.100
 
-cat <<EOF > bastion-deploy.sh
-hostnamectl set-hostname ocp4-bastion.cnv.example.com
-dnf install qemu-img jq git httpd squid dhcp-server xinetd net-tools nano bind bind-utils haproxy wget syslinux libvirt-libs -y
-dnf install tftp-server syslinux-tftpboot -y
-dnf update -y
-ssh-keygen -t rsa -b 4096 -N '' -f ~/.ssh/id_rsa
-dnf install firewalld -y
-systemctl enable --now firewalld
-firewall-cmd --add-service=dhcp --permanent
-firewall-cmd --add-service=dns --permanent
-firewall-cmd --add-service=http --permanent
-firewall-cmd --add-service=https --permanent
-firewall-cmd --add-service=squid --permanent
-firewall-cmd --add-service=tftp --permanent
-firewall-cmd --add-service={nfs3,mountd,rpc-bind} --permanent
-firewall-cmd --add-service=nfs --permanent
-firewall-cmd --permanent --add-port 6443/tcp
-firewall-cmd --permanent --add-port 8443/tcp
-firewall-cmd --permanent --add-port 22623/tcp
-firewall-cmd --permanent --add-port 81/tcp
-firewall-cmd --reload
-setsebool -P haproxy_connect_any=1
-mkdir -p /nfs/pv1
-mkdir -p /nfs/pv2
-mkdir -p /nfs/fc31
-chmod -R 777 /nfs
-echo -e "/nfs *(rw,no_root_squash)" > /etc/exports
-# we may have to do something about setting /etc/nfs.conf to v4 only
-systemctl enable httpd
-systemctl enable named
-systemctl enable squid
-systemctl enable dhcpd
-systemctl enable rpcbind
-systemctl enable nfs-server
-mkdir -p /var/lib/tftpboot/pxelinux/pxelinux.cfg/
-cp -f /tftpboot/pxelinux.0 /var/lib/tftpboot/pxelinux
-cp -f /tftpboot/ldlinux.c32 /var/lib/tftpboot/pxelinux
-cp -f /tftpboot/vesamenu.c32 /var/lib/tftpboot/pxelinux
-sed -i 's/Listen 80/Listen 81/g' /etc/httpd/conf/httpd.conf
-wget $OCP_INSTALL
-wget $OC_CLIENT
-tar -zxvf openshift-client*
-tar -zxvf openshift-install*
-cp oc kubectl /usr/bin/
-rm -f oc kubectl
-chmod a+x /usr/bin/oc
-chmod a+x /usr/bin/kubectl
-mkdir -p /root/ocp-install/
-growpart /dev/vda 1
-xfs_growfs /
+  cat <<EOF > bastion-deploy.sh
+  hostnamectl set-hostname ocp4-bastion.cnv.example.com
+  dnf install qemu-img jq git httpd squid dhcp-server xinetd net-tools nano bind bind-utils haproxy wget syslinux libvirt-libs -y
+  dnf install tftp-server syslinux-tftpboot -y
+  dnf update -y
+  ssh-keygen -t rsa -b 4096 -N '' -f ~/.ssh/id_rsa
+  dnf install firewalld -y
+  systemctl enable --now firewalld
+  firewall-cmd --add-service=dhcp --permanent
+  firewall-cmd --add-service=dns --permanent
+  firewall-cmd --add-service=http --permanent
+  firewall-cmd --add-service=https --permanent
+  firewall-cmd --add-service=squid --permanent
+  firewall-cmd --add-service=tftp --permanent
+  firewall-cmd --add-service={nfs3,mountd,rpc-bind} --permanent
+  firewall-cmd --add-service=nfs --permanent
+  firewall-cmd --permanent --add-port 6443/tcp
+  firewall-cmd --permanent --add-port 8443/tcp
+  firewall-cmd --permanent --add-port 22623/tcp
+  firewall-cmd --permanent --add-port 81/tcp
+  firewall-cmd --reload
+  setsebool -P haproxy_connect_any=1
+  mkdir -p /nfs/pv1
+  mkdir -p /nfs/pv2
+  mkdir -p /nfs/fc31
+  chmod -R 777 /nfs
+  echo -e "/nfs *(rw,no_root_squash)" > /etc/exports
+  # we may have to do something about setting /etc/nfs.conf to v4 only
+  systemctl enable httpd
+  systemctl enable named
+  systemctl enable squid
+  systemctl enable dhcpd
+  systemctl enable rpcbind
+  systemctl enable nfs-server
+  mkdir -p /var/lib/tftpboot/pxelinux/pxelinux.cfg/
+  cp -f /tftpboot/pxelinux.0 /var/lib/tftpboot/pxelinux
+  cp -f /tftpboot/ldlinux.c32 /var/lib/tftpboot/pxelinux
+  cp -f /tftpboot/vesamenu.c32 /var/lib/tftpboot/pxelinux
+  sed -i 's/Listen 80/Listen 81/g' /etc/httpd/conf/httpd.conf
+  wget $OCP_INSTALL
+  wget $OC_CLIENT
+  tar -zxvf openshift-client*
+  tar -zxvf openshift-install*
+  cp oc kubectl /usr/bin/
+  rm -f oc kubectl
+  chmod a+x /usr/bin/oc
+  chmod a+x /usr/bin/kubectl
+  mkdir -p /root/ocp-install/
+  growpart /dev/vda 1
+  xfs_growfs /
 EOF
 
-if $USE_IPI; then
-	sed -i /tftp/d bastion-deploy.sh
-	cat <<EOF >> bastion-deploy.sh
-	dnf install -y libvirt qemu-kvm mkisofs python3-devel jq ipmitool
-	systemctl enable --now libvirtd
-	virsh pool-define-as --name default --type dir --target /var/lib/libvirt/images
-	virsh pool-start default
-	virsh pool-autostart default
-	nmcli connection add ifname provisioning type bridge con-name provisioning
-	nmcli con add type bridge-slave ifname eth1 master provisioning
-	nmcli connection modify provisioning ipv4.addresses 172.22.0.1/24 ipv4.method manual
-	nmcli connection modify provisioning ipv4.gateway 172.22.0.254
-	nmcli con down provisioning
-	nmcli con up provisioning
-	nmcli connection add ifname baremetal type bridge con-name baremetal
-	nmcli con add type bridge-slave ifname eth0 master baremetal
-	nmcli con down "System eth0"
-	nmcli connection modify baremetal ipv4.addresses 192.168.123.100/24 ipv4.method manual
-	nmcli connection modify baremetal ipv4.gateway 192.168.123.1
-	nmcli con down baremetal
-	nmcli con up baremetal
-	rm -f /etc/sysconfig/network-scripts/ifcfg-eth0
+  if $USE_IPI; then
+  	sed -i /tftp/d bastion-deploy.sh
+  	cat <<EOF >> bastion-deploy.sh
+  	dnf install -y libvirt qemu-kvm mkisofs python3-devel jq ipmitool
+  	systemctl enable --now libvirtd
+  	virsh pool-define-as --name default --type dir --target /var/lib/libvirt/images
+  	virsh pool-start default
+  	virsh pool-autostart default
+  	nmcli connection add ifname provisioning type bridge con-name provisioning
+  	nmcli con add type bridge-slave ifname eth1 master provisioning
+  	nmcli connection modify provisioning ipv4.addresses 172.22.0.1/24 ipv4.method manual
+  	nmcli connection modify provisioning ipv4.gateway 172.22.0.254
+  	nmcli con down provisioning
+  	nmcli con up provisioning
+  	nmcli connection add ifname baremetal type bridge con-name baremetal
+  	nmcli con add type bridge-slave ifname eth0 master baremetal
+  	nmcli con down "System eth0"
+  	nmcli connection modify baremetal ipv4.addresses 192.168.123.100/24 ipv4.method manual
+  	nmcli connection modify baremetal ipv4.gateway 192.168.123.1
+  	nmcli con down baremetal
+  	nmcli con up baremetal
+  	rm -f /etc/sysconfig/network-scripts/ifcfg-eth0
 EOF
 
-else
-	cat <<EOF >> bastion-deploy.sh
-	systemctl enable xinetd
-	systemctl enable tftp
-	systemctl enable haproxy
-	wget $RHCOS_RAW
-	wget $RHCOS_KERNEL
-	wget $RHCOS_RAMDISK
-	wget $RHCOS_ROOTFS
-	mv rhcos* /var/www/html
-	mv /var/www/html/*raw* /var/www/html/rhcos.raw.gz
-	mv /var/www/html/*kernel* /var/www/html/rhcos.kernel
-	mv /var/www/html/*initramfs* /var/www/html/rhcos.initramfs
-	mv /var/www/html/*rootfs* /var/www/html/rhcos.rootfs
-	chmod -R 777 /var/www/html
-	restorecon -Rv /var/www/html
+  else
+  	cat <<EOF >> bastion-deploy.sh
+  	systemctl enable xinetd
+  	systemctl enable tftp
+  	systemctl enable haproxy
+  	wget $RHCOS_RAW
+  	wget $RHCOS_KERNEL
+  	wget $RHCOS_RAMDISK
+  	wget $RHCOS_ROOTFS
+  	mv rhcos* /var/www/html
+  	mv /var/www/html/*raw* /var/www/html/rhcos.raw.gz
+  	mv /var/www/html/*kernel* /var/www/html/rhcos.kernel
+  	mv /var/www/html/*initramfs* /var/www/html/rhcos.initramfs
+  	mv /var/www/html/*rootfs* /var/www/html/rhcos.rootfs
+  	chmod -R 777 /var/www/html
+  	restorecon -Rv /var/www/html
 EOF
-fi
+  fi
 
-echo -e "\n\n[INFO] Running the bastion deployment script remotely...\n"
+  echo -e "\n\n[INFO] Running the bastion deployment script remotely...\n"
 
-scp -o StrictHostKeyChecking=no bastion-deploy.sh root@192.168.123.100:/root/
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 sh /root/bastion-deploy.sh
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 rm -f /root/bastion-deploy.sh
+  scp -o StrictHostKeyChecking=no bastion-deploy.sh root@192.168.123.100:/root/
+  ssh -o StrictHostKeyChecking=no root@192.168.123.100 sh /root/bastion-deploy.sh
+  ssh -o StrictHostKeyChecking=no root@192.168.123.100 rm -f /root/bastion-deploy.sh
 
-echo -e "\n\n[INFO] Copying the RHEL8 KVM Image into the guest...\n"
-scp -o StrictHostKeyChecking=no /var/lib/libvirt/images/rhel8-kvm.qcow2 root@192.168.123.100:/var/www/html/
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "qemu-img convert -f qcow2 -O raw /var/www/html/rhel8-kvm.qcow2 /var/www/html/rhel8-kvm.img"
+  echo -e "\n\n[INFO] Copying the RHEL8 KVM Image into the guest...\n"
+  scp -o StrictHostKeyChecking=no /var/lib/libvirt/images/rhel8-kvm.qcow2 root@192.168.123.100:/var/www/html/
+  ssh -o StrictHostKeyChecking=no root@192.168.123.100 "qemu-img convert -f qcow2 -O raw /var/www/html/rhel8-kvm.qcow2 /var/www/html/rhel8-kvm.img"
 
-echo -e "\n\n[INFO] Configuring the supporting services (squid, haproxy, DNS, DHCP, TFTP, httpd)...\n"
+  echo -e "\n\n[INFO] Configuring the supporting services (squid, haproxy, DNS, DHCP, TFTP, httpd)...\n"
 
-if $USE_IPI; then
-	scp -o StrictHostKeyChecking=no configs/ipi/dhcpd.conf root@192.168.123.100:/etc/dhcp/dhcpd.conf
-	scp -o StrictHostKeyChecking=no configs/ipi/cnv.example.com.db root@192.168.123.100:/var/named/cnv.example.com.db
-	cp -f configs/ipi/install-config.yaml pre-install-config.yaml
-	if $OCS_SUPPORT; then
-		# We default to 3 masters anyway, so we can force all replica counts to 3 safely
-		sed -i 's/replicas:.*/replicas: 3/g' pre-install-config.yaml
-	fi
+  if $USE_IPI; then
+  	scp -o StrictHostKeyChecking=no configs/ipi/dhcpd.conf root@192.168.123.100:/etc/dhcp/dhcpd.conf
+  	scp -o StrictHostKeyChecking=no configs/ipi/cnv.example.com.db root@192.168.123.100:/var/named/cnv.example.com.db
+  	cp -f configs/ipi/install-config.yaml pre-install-config.yaml
+  	if $OCS_SUPPORT; then
+  		# We default to 3 masters anyway, so we can force all replica counts to 3 safely
+  		sed -i 's/replicas:.*/replicas: 3/g' pre-install-config.yaml
+  	fi
+  else
+  	scp -o StrictHostKeyChecking=no configs/dhcpd.conf root@192.168.123.100:/etc/dhcp/dhcpd.conf
+  	cp -f configs/install-config.yaml pre-install-config.yaml
+  	scp -o StrictHostKeyChecking=no -r pxeboot/generated/* root@192.168.123.100:/var/lib/tftpboot/pxelinux/pxelinux.cfg/
+  	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "restorecon -Rv /var/lib/tftpboot/ && chmod -R 777 /var/lib/tftpboot/pxelinux"
+  	scp -o StrictHostKeyChecking=no configs/cnv.example.com.db root@192.168.123.100:/var/named/cnv.example.com.db
+  fi
+
+  scp -o StrictHostKeyChecking=no configs/squid.conf root@192.168.123.100:/etc/squid/squid.conf
+  scp -o StrictHostKeyChecking=no configs/named.conf root@192.168.123.100:/etc/named.conf
+  scp -o StrictHostKeyChecking=no configs/haproxy.cfg root@192.168.123.100:/etc/haproxy/haproxy.cfg
+  scp -o StrictHostKeyChecking=no configs/123.168.192.db root@192.168.123.100:/var/named/123.168.192.db
+
+  sed -i "s/PULL_SECRET/$PULL_SECRET/g" pre-install-config.yaml
+  scp -o StrictHostKeyChecking=no pre-install-config.yaml root@192.168.123.100:/root/install-config.yaml
+
+  ssh -o StrictHostKeyChecking=no root@192.168.123.100 'sed -i "s|BAST_SSHKEY|$(cat /root/.ssh/id_rsa.pub)|g" install-config.yaml'
+  ssh -o StrictHostKeyChecking=no root@192.168.123.100 cp /root/install-config.yaml /root/ocp-install/install-config.yaml
+
+  if $USE_DISCONNECTED; then
+      echo -e "\n\n[INFO] Deploying the disconnected image registry...\n"
+      scp -o StrictHostKeyChecking=no scripts/deploy-disconnected.sh root@192.168.123.100:/root/
+      echo $PULL_SECRET > /tmp/secret
+      scp -o StrictHostKeyChecking=no /tmp/secret root@192.168.123.100:~/pull-secret.json
+      rm /tmp/secret -f
+      ssh -o StrictHostKeyChecking=no root@192.168.123.100 sh /root/deploy-disconnected.sh
+  fi
+
+  echo -e "\n\n[INFO] Rebooting bastion host...\n"
+
+  ssh -o StrictHostKeyChecking=no root@192.168.123.100 reboot
+
+  echo -ne "\n[INFO] Waiting for the ssh daemon on the bastion host to appear"
+  while [ ! "`nmap -sV -p 22 192.168.123.100|grep open`" ]; do
+    echo -n "."
+    sleep 1s
+  done
+  echo
+
+  if $USE_DISCONNECTED; then
+      sleep 30
+      ssh -o StrictHostKeyChecking=no root@192.168.123.100 podman start poc-registry
+  fi
 else
-	scp -o StrictHostKeyChecking=no configs/dhcpd.conf root@192.168.123.100:/etc/dhcp/dhcpd.conf
-	cp -f configs/install-config.yaml pre-install-config.yaml
-	scp -o StrictHostKeyChecking=no -r pxeboot/generated/* root@192.168.123.100:/var/lib/tftpboot/pxelinux/pxelinux.cfg/
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "restorecon -Rv /var/lib/tftpboot/ && chmod -R 777 /var/lib/tftpboot/pxelinux"
-	scp -o StrictHostKeyChecking=no configs/cnv.example.com.db root@192.168.123.100:/var/named/cnv.example.com.db
+  /sbin/parted /dev/sdb mklabel gpt --script
+  /sbin/parted /dev/sdb mkpart primary 0% 100% --script
+  mkfs.ext4 -v -L NFS /dev/sdb1
+  mkdir /nfs
+  mount /dev/sdb1 /nfs
+  hostnamectl set-hostname ocp4-bastion.cnv.example.com
+  dnf install qemu-img jq git httpd squid dhcp-server xinetd net-tools nano bind bind-utils haproxy wget syslinux libvirt-libs -y
+  dnf install tftp-server syslinux-tftpboot -y
+  dnf update -y
+  ssh-keygen -t rsa -b 4096 -N '' -f ~/.ssh/id_rsa
+  dnf install firewalld -y
+  systemctl enable --now firewalld
+  firewall-cmd --add-service=dhcp --permanent
+  firewall-cmd --add-service=dns --permanent
+  firewall-cmd --add-service=http --permanent
+  firewall-cmd --add-service=https --permanent
+  firewall-cmd --add-service=squid --permanent
+  firewall-cmd --add-service=tftp --permanent
+  firewall-cmd --add-service={nfs3,mountd,rpc-bind} --permanent
+  firewall-cmd --add-service=nfs --permanent
+  firewall-cmd --permanent --add-port 6443/tcp
+  firewall-cmd --permanent --add-port 8443/tcp
+  firewall-cmd --permanent --add-port 22623/tcp
+  firewall-cmd --permanent --add-port 81/tcp
+  firewall-cmd --reload
+  setsebool -P haproxy_connect_any=1
+  mkdir -p /nfs/pv1
+  mkdir -p /nfs/pv2
+  mkdir -p /nfs/fc31
+  chmod -R 777 /nfs
+  echo -e "/nfs *(rw,no_root_squash)" > /etc/exports
+  # we may have to do something about setting /etc/nfs.conf to v4 only
+  systemctl enable httpd
+  systemctl enable named
+  systemctl enable squid
+  systemctl enable dhcpd
+  systemctl enable rpcbind
+  systemctl enable nfs-server
+  mkdir -p /var/lib/tftpboot/pxelinux/pxelinux.cfg/
+  cp -f /tftpboot/pxelinux.0 /var/lib/tftpboot/pxelinux
+  cp -f /tftpboot/ldlinux.c32 /var/lib/tftpboot/pxelinux
+  cp -f /tftpboot/vesamenu.c32 /var/lib/tftpboot/pxelinux
+  sed -i 's/Listen 80/Listen 81/g' /etc/httpd/conf/httpd.conf
+  wget $OCP_INSTALL
+  wget $OC_CLIENT
+  tar -zxvf openshift-client*
+  tar -zxvf openshift-install*
+  cp oc kubectl /usr/bin/
+  rm -f oc kubectl
+  chmod a+x /usr/bin/oc
+  chmod a+x /usr/bin/kubectl
+  mkdir -p /root/ocp-install/
+
+
+  if $USE_IPI; then
+    sed -i /tftp/d bastion-deploy.sh
+    dnf install -y libvirt qemu-kvm mkisofs python3-devel jq ipmitool
+    systemctl enable --now libvirtd
+    virsh pool-define-as --name default --type dir --target /var/lib/libvirt/images
+    virsh pool-start default
+    virsh pool-autostart default
+    nmcli connection add ifname provisioning type bridge con-name provisioning
+    nmcli con add type bridge-slave ifname eno2 master provisioning
+    nmcli connection modify provisioning ipv4.addresses 172.22.0.1/24 ipv4.method manual
+    nmcli connection modify provisioning ipv4.gateway 172.22.0.254
+    nmcli con down provisioning
+    nmcli con up provisioning
+    nmcli connection add ifname baremetal type bridge con-name baremetal
+    nmcli con add type bridge-slave ifname eno1 master baremetal
+    nmcli con down "System eno1"
+    nmcli connection modify baremetal ipv4.addresses 192.168.123.100/24 ipv4.method manual
+    nmcli connection modify baremetal ipv4.gateway 192.168.123.1
+    nmcli con down baremetal
+    nmcli con up baremetal
+    rm -f /etc/sysconfig/network-scripts/ifcfg-eth0
+EOF
+
+  else
+    cat <<EOF >> bastion-deploy.sh
+    systemctl enable xinetd
+    systemctl enable tftp
+    systemctl enable haproxy
+    wget $RHCOS_RAW
+    wget $RHCOS_KERNEL
+    wget $RHCOS_RAMDISK
+    wget $RHCOS_ROOTFS
+    mv rhcos* /var/www/html
+    mv /var/www/html/*raw* /var/www/html/rhcos.raw.gz
+    mv /var/www/html/*kernel* /var/www/html/rhcos.kernel
+    mv /var/www/html/*initramfs* /var/www/html/rhcos.initramfs
+    mv /var/www/html/*rootfs* /var/www/html/rhcos.rootfs
+    chmod -R 777 /var/www/html
+    restorecon -Rv /var/www/html
+EOF
+  fi
+
+  echo -e "\n\n[INFO] Configuring the supporting services (squid, haproxy, DNS, DHCP, TFTP, httpd)...\n"
+
+  if $USE_IPI; then
+    cp configs/ipi/dhcpd.conf /etc/dhcp/dhcpd.conf
+    cp configs/ipi/cnv.example.com.db /var/named/cnv.example.com.db
+    cp -f configs/ipi/install-config.yaml pre-install-config.yaml
+    if $OCS_SUPPORT; then
+      # We default to 3 masters anyway, so we can force all replica counts to 3 safely
+      sed -i 's/replicas:.*/replicas: 3/g' pre-install-config.yaml
+    fi
+  else
+    cp configs/dhcpd.conf /etc/dhcp/dhcpd.conf
+    cp -f configs/install-config.yaml pre-install-config.yaml
+    cp -R pxeboot/generated/* /var/lib/tftpboot/pxelinux/pxelinux.cfg/
+    restorecon -Rv /var/lib/tftpboot/ && chmod -R 777 /var/lib/tftpboot/pxelinux
+    cp configs/cnv.example.com.db /var/named/cnv.example.com.db
+  fi
+
+  cp configs/squid.conf /etc/squid/squid.conf
+  cp configs/named.conf /etc/named.conf
+  cp configs/haproxy.cfg /etc/haproxy/haproxy.cfg
+  cp configs/123.168.192.db /var/named/123.168.192.db
+
+  sed -i "s/PULL_SECRET/$PULL_SECRET/g" pre-install-config.yaml
+  cp pre-install-config.yaml /root/install-config.yaml
+
+  sed -i "s|BAST_SSHKEY|$(cat /root/.ssh/id_rsa.pub)|g" install-config.yaml
+  cp /root/install-config.yaml /root/ocp-install/install-config.yaml
+
+  if $USE_DISCONNECTED; then
+      echo -e "\n\n[INFO] Deploying the disconnected image registry...\n"
+      cp scripts/deploy-disconnected.sh /root/
+      echo $PULL_SECRET > /tmp/secret
+      cp /tmp/secret ~/pull-secret.json
+      rm /tmp/secret -f
+      sh /root/deploy-disconnected.sh
+  fi
+
+  echo -e "\n\n[INFO] Rebooting bastion host...\n"
+
+  # ssh -o StrictHostKeyChecking=no root@192.168.123.100 reboot
+  #
+  # echo -ne "\n[INFO] Waiting for the ssh daemon on the bastion host to appear"
+  # while [ ! "`nmap -sV -p 22 192.168.123.100|grep open`" ]; do
+  #   echo -n "."
+  #   sleep 1s
+  # done
+  # echo
+
+  # if $USE_DISCONNECTED; then
+  #     sleep 30
+  #     ssh -o StrictHostKeyChecking=no root@192.168.123.100 podman start poc-registry
+  # fi
 fi
-
-scp -o StrictHostKeyChecking=no configs/squid.conf root@192.168.123.100:/etc/squid/squid.conf
-scp -o StrictHostKeyChecking=no configs/named.conf root@192.168.123.100:/etc/named.conf
-scp -o StrictHostKeyChecking=no configs/haproxy.cfg root@192.168.123.100:/etc/haproxy/haproxy.cfg
-scp -o StrictHostKeyChecking=no configs/123.168.192.db root@192.168.123.100:/var/named/123.168.192.db
-
-sed -i "s/PULL_SECRET/$PULL_SECRET/g" pre-install-config.yaml
-scp -o StrictHostKeyChecking=no pre-install-config.yaml root@192.168.123.100:/root/install-config.yaml
-
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 'sed -i "s|BAST_SSHKEY|$(cat /root/.ssh/id_rsa.pub)|g" install-config.yaml'
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 cp /root/install-config.yaml /root/ocp-install/install-config.yaml
-
-if $USE_DISCONNECTED; then
-    echo -e "\n\n[INFO] Deploying the disconnected image registry...\n"
-    scp -o StrictHostKeyChecking=no scripts/deploy-disconnected.sh root@192.168.123.100:/root/
-    echo $PULL_SECRET > /tmp/secret
-    scp -o StrictHostKeyChecking=no /tmp/secret root@192.168.123.100:~/pull-secret.json
-    rm /tmp/secret -f
-    ssh -o StrictHostKeyChecking=no root@192.168.123.100 sh /root/deploy-disconnected.sh
-fi
-
-echo -e "\n\n[INFO] Rebooting bastion host...\n"
-
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 reboot
-
-echo -ne "\n[INFO] Waiting for the ssh daemon on the bastion host to appear"
-while [ ! "`nmap -sV -p 22 192.168.123.100|grep open`" ]; do
-  echo -n "."
-  sleep 1s
-done
-echo
-
-if $USE_DISCONNECTED; then
-    sleep 30
-    ssh -o StrictHostKeyChecking=no root@192.168.123.100 podman start poc-registry
-fi
-
-mkdir -p generated/
-mv bastion-deploy.sh pre-install-config.yaml generated/
-
-sleep 1m
-
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 'echo -e "search cnv.example.com\nnameserver 192.168.123.100" > /etc/resolv.conf && chattr +i /etc/resolv.conf'
-
-if $USE_IPI; then
-	scp -o StrictHostKeyChecking=no scripts/rhcos-refresh.sh root@192.168.123.100:~
-	echo -e "\n\n[INFO] Extracting the OpenShift Baremetal Installer binary...\n"
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "oc adm release extract --registry-config ~/pull-secret.json --command=openshift-baremetal-install --to /root \$(oc version | awk '/Client/ {print \$3;}')"
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "./openshift-baremetal-install version"
-	echo -e "\n\n[INFO] Grabbing the latest RHCOS images for the specified OpenShift version...\n"
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 cp /root/install-config.yaml /root/ocp-install/install-config.yaml
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "sh ~/rhcos-refresh.sh"
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "./openshift-baremetal-install --dir=/root/ocp-install/ create manifests"
-	scp -o StrictHostKeyChecking=no configs/ocp/99* root@192.168.123.100:/root/ocp-install/openshift/
-	echo -e "\n\n[INFO] Running OpenShift IPI Installation (nodes will boot automatically)...\n"
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "./openshift-baremetal-install --dir=/root/ocp-install --log-level=debug create cluster"
-	# Sometimes this can timeout on a slower system so adding in an extra 1hr to the timeout
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "./openshift-baremetal-install --dir=/root/ocp-install --log-level=debug wait-for install-complete"
-else
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "./openshift-install --dir=/root/ocp-install/ create manifests"
-	scp -o StrictHostKeyChecking=no configs/ocp/99* root@192.168.123.100:/root/ocp-install/openshift/
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 cp /root/install-config.yaml /root/ocp-install/install-config.yaml
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "./openshift-install --dir=/root/ocp-install/ create ignition-configs"
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "cp /root/ocp-install/*.ign /var/www/html/ && restorecon -Rv /var/www/html && chmod -R 777 /var/www/html"
-
-	echo -e "\n\n[INFO] Booting OpenShift nodes (they'll PXE boot automatically)...\n"
-	for i in bootstrap master1 master2 master3 worker1 worker2
-	do
-		sudo virsh start ocp4-$i
-	done
-
-	if $OCS_SUPPORT; then
-		sudo virsh start ocp4-worker3
-	fi
-
-	sleep 20
-
-	echo -e "\n\n[INFO] Waiting for OpenShift installation to complete...\n"
-
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "./openshift-install --dir=/root/ocp-install wait-for bootstrap-complete"
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "./openshift-install --dir=/root/ocp-install wait-for bootstrap-complete" > /tmp/bootstrap-test 2>&1
-	grep safe /tmp/bootstrap-test > /dev/null 2>&1
-	if [ "$?" -ne 0 ]
-	then
-		echo -e "\n\n\nERROR: Bootstrap did not complete in time!"
-		echo "Your environment (CPU or network bandwidth) might be"
-		echo "too slow. Continue by hand or execute ./cleanup.sh and"
-		echo "start all over again."
-		exit 1
-	fi
-
-	echo -e "\n\n[INFO] Completing the installation and approving workers...\n"
-	sudo virsh destroy ocp4-bootstrap
-	sleep 300
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && for csr in \$(oc -n openshift-machine-api get csr | awk '/Pending/ {print \$1}'); do oc adm certificate approve \$csr;done"
-	sleep 180
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && for csr in \$(oc -n openshift-machine-api get csr | awk '/Pending/ {print \$1}'); do oc adm certificate approve \$csr;done"
-	ssh -o StrictHostKeyChecking=no root@192.168.123.100 "./openshift-install --dir=/root/ocp-install wait-for install-complete --log-level=debug"
-fi
-
-echo -e "\n\n[INFO] Enabling the Image Registry on NFS...\n"
-
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{\"spec\":{\"managementState\":\"Managed\"}}'"
-scp -o StrictHostKeyChecking=no configs/image-registry-pv.yaml root@192.168.123.100:/root/
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && oc create -f image-registry-pv.yaml"
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{\"spec\":{\"storage\":{\"pvc\":{}}}}'"
-
-# Restart squid, as it doesn't come up properly FIXME
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "systemctl restart squid"
-
-echo -e "\n\n[INFO] Approving any worker CSRs that have not yet been approved..."
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && for csr in \$(oc -n openshift-machine-api get csr | awk '/Pending/ {print \$1}'); do oc adm certificate approve \$csr;done"
-
-echo -e "\n\n[INFO] Waiting for the cluster to settle and all pods start up..."
-sleep 180
-
-# These next steps are optional - move the exit above if you don't want to deploy them - TODO create variable
-
-# Deploy the CNV/bookbag service
-echo -e "\n\n[INFO] Deploying the Hands-on Lab Guide..."
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && oc new-project workbook"
-sleep 10
-scp -o StrictHostKeyChecking=no -rq docs root@192.168.123.100:/root/
-sleep 10
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && oc process -f docs/build-template.yaml -p NAME=cnv | oc apply -f -"
-sleep 30
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && for csr in \$(oc -n openshift-machine-api get csr | awk '/Pending/ {print \$1}'); do oc adm certificate approve \$csr;done"
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && oc start-build cnv --from-dir=./docs/"
-sleep 75
-
-# Check progress on the build
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && oc get pods|grep \"^cnv-.-build\""|grep "Init:Error"
-if [ "$?" -eq 0 ]; then
-    echo -e "\n\n[INFO] Something went wrong... retrying once\n"
-    sleep 75
-    ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && for csr in \$(oc -n openshift-machine-api get csr | awk '/Pending/ {print \$1}'); do oc adm certificate approve \$csr;done"
-    ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && oc start-build cnv --from-dir=./docs/"
-    sleep 75
-fi
-
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && oc process -f docs/deploy-template.yaml -p NAME=cnv -p IMAGE_STREAM_NAME=cnv | oc apply -f -"
-
-# Enable cluster-admin privileges for the cnv/bookbag user
-ssh -o StrictHostKeyChecking=no root@192.168.123.100 "export KUBECONFIG=ocp-install/auth/kubeconfig && oc adm policy add-cluster-role-to-user cluster-admin -z cnv"
-
 echo -e "\n\n[SUCCESS] Deployment has been succesful!"
 
 exit 0
