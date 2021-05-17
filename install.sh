@@ -28,7 +28,7 @@ USE_DISCONNECTED=true
 USE_IPI=false
 
 #Warning : this will DESTROY your environment, only run it on throwable envs (e.g packet or fpm lab) you've been warned !
-FAST_IPI=true
+FAST_IPI=false
 
 ################################
 # DO NOT CHANGE ANYTHING BELOW #
